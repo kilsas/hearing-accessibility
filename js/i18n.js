@@ -270,11 +270,6 @@ window.HearI18n = (function () {
       'screen.speech.placeholder': 'Type what you heard...',
       'screen.speech.submit': 'Submit',
       'screen.sentence': 'Sentence {n} of {total}',
-      // Content spoken/typed during the Speech stages — these are what's
-      // being tested, not interface chrome, so they follow the UI
-      // language like everything else here: a Korean-language screening
-      // uses Korean sentences and Korean text-to-speech, not English
-      // sentences with Korean labels around them.
       'screen.quiet.0': 'The meeting begins at three.',
       'screen.quiet.1': 'Please close the door behind you.',
       'screen.noise.0': 'Turn left at the next light.',
@@ -390,9 +385,6 @@ window.HearI18n = (function () {
       'collect.sequencesUnit': 'sequences',
       'collect.noSequencesYet': 'No sequences yet — record some signs first.',
       'collect.needTwoCollectors': 'Record sequences from at least two different collectors to see this.',
-      // Per-sequence delete — lets someone remove one bad recording
-      // instead of clearing an entire sign (see collect.js's expandable
-      // per-sign list).
       'collect.noEntries': 'No sequences recorded for this sign yet.',
       'collect.deleteSequence': 'Delete this sequence',
       'collect.deleteConfirm': 'Delete this recording? This can\u2019t be undone — you can always record another.',
@@ -739,7 +731,6 @@ window.HearI18n = (function () {
       'collect.import': '데이터셋 가져오기 (병합됨)',
       'collect.clearAll': '모든 시퀀스 지우기',
 
-      // ---- shared model consent ----
       'collect.consent.h3': '이 시퀀스를 저장하기 전에',
       'collect.consent.personal': '내 개인 모델에만 추가',
       'collect.consent.personal.sub': '이 브라우저에만 남습니다. 본인의 정확도 테스트에만 사용되며, 공유용 내보내기에는 포함되지 않습니다.',
@@ -810,9 +801,6 @@ window.HearI18n = (function () {
     return l;
   }
 
-  // ---- speech language (Live Hear) ----
-  // Defaults to match the UI language until the person explicitly
-  // picks a speech language, at which point that choice sticks.
   function speechLangForUi(uiLang) { return uiLang === 'ko' ? 'ko-KR' : 'en-US'; }
 
   function getSpeechLang() {
@@ -829,8 +817,6 @@ window.HearI18n = (function () {
     try { return localStorage.getItem(SPEECH_OVERRIDE_KEY) === '1'; } catch (e) { return false; }
   }
 
-  // manual=true (the default) marks this as an explicit choice that
-  // should stop tracking the UI language going forward.
   function setSpeechLang(code, manual) {
     try {
       localStorage.setItem(SPEECH_STORAGE_KEY, code);
@@ -839,16 +825,9 @@ window.HearI18n = (function () {
     return code;
   }
 
-  // ---- sign language (Sign to Text) default ----
-  // Only a *default* — the actual current value and its own override
-  // tracking live in sign-classifier.js (hear_sign_language). This
-  // just tells that module what to fall back to when nothing has
-  // been explicitly chosen yet.
   function signLangForUi(uiLang) { return uiLang === 'ko' ? 'KSL' : 'ASL'; }
   function getSignLangDefault() { return signLangForUi(getLang()); }
 
-  // Simple {placeholder} interpolation for strings that need one, e.g.
-  // t('screen.trial', { n: 2, total: 5 }).
   function t(key, vars) {
     const lang = getLang();
     let str = (dict[lang] && dict[lang][key] !== undefined) ? dict[lang][key]
