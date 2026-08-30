@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="screening.title">Check Your Listening Experience — HEAR</title>
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/i18n.js"></script>
+</head>
+<body>
+
+<header class="wrap site-header">
+  <a href="index.html" class="logo"><span class="dot"></span> HEAR</a>
+  <nav class="nav">
+    <a href="screening.html" class="active" data-i18n="nav.screening">Check My Experience</a>
+    <a href="hear.html" data-i18n="nav.hear">Live Hear</a>
+    <a href="sign.html" data-i18n="nav.sign">Sign to Text</a>
+    <a href="accessibility.html" data-i18n="nav.accessibility">Accessibility Guide</a>
+    <a href="experience.html" data-i18n="nav.experience">Experience</a>
+    <a href="insights.html" data-i18n="nav.insights">Insights</a>
+    <a href="about.html" data-i18n="nav.about">About</a>
+  </nav>
+  <div class="lang-toggle" id="uiLangToggle">
+    <button data-ui-lang="en">EN</button>
+    <button data-ui-lang="ko">한국어</button>
+  </div>
+</header>
+
+<main class="wrap" style="padding: 30px 28px 100px;">
+  <div style="max-width:620px; margin: 0 auto 8px; display:flex; justify-content:space-between; align-items:center;">
+    <span id="stageCounter" style="font-size:13px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.04em;"></span>
+  </div>
+  <div style="max-width:620px; margin: 0 auto;">
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="stage" id="stage"></div>
+</main>
+
+<footer class="wrap site-footer">
+  <span data-i18n="footer.tagline">HEAR — a web-based accessibility platform for everyday communication.</span>
+  <span data-i18n="footer.notice">Not a medical device. Does not diagnose hearing loss.</span>
+</footer>
+
+<script src="js/screening.js"></script>
+</body>
+</html>
