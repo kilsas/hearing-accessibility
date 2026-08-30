@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="exp.title">Experience — HEAR</title>
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/i18n.js"></script>
+</head>
+<body>
+
+<header class="wrap site-header">
+  <a href="index.html" class="logo"><span class="dot"></span> HEAR</a>
+  <nav class="nav">
+    <a href="screening.html" data-i18n="nav.screening">Check My Experience</a>
+    <a href="hear.html" data-i18n="nav.hear">Live Hear</a>
+    <a href="sign.html" data-i18n="nav.sign">Sign to Text</a>
+    <a href="accessibility.html" data-i18n="nav.accessibility">Accessibility Guide</a>
+    <a href="experience.html" class="active" data-i18n="nav.experience">Experience</a>
+    <a href="insights.html" data-i18n="nav.insights">Insights</a>
+    <a href="about.html" data-i18n="nav.about">About</a>
+  </nav>
+  <div class="lang-toggle" id="uiLangToggle">
+    <button data-ui-lang="en">EN</button>
+    <button data-ui-lang="ko">한국어</button>
+  </div>
+</header>
+
+<main class="wrap" style="padding: 30px 28px 100px;">
+  <div class="kicker" data-i18n="exp.kicker">Try it yourself</div>
+  <h1 style="font-size:38px; max-width:640px;" data-i18n="exp.h1">Experience a challenging listening environment.</h1>
+  <div class="notice">
+    <strong data-i18n="exp.notice">This is an educational simulation. It does not reproduce every person's experience of hearing loss, and different people experience hearing loss differently.</strong>
+  </div>
+
+  <div class="grid-3" id="scenarioGrid" style="margin-top:32px;">
+    <div class="card scenario-card" data-scenario="classroom" style="cursor:pointer;">
+      <span class="icon">🏫</span>
+      <h3 data-i18n="exp.classroom.h3">Classroom</h3>
+      <p data-i18n="exp.classroom.p">Hear a lesson the way it might sound with reduced clarity and classroom chatter.</p>
+    </div>
+    <div class="card scenario-card" data-scenario="restaurant" style="cursor:pointer;">
+      <span class="icon">🍽</span>
+      <h3 data-i18n="exp.restaurant.h3">Restaurant</h3>
+      <p data-i18n="exp.restaurant.p">Try following a conversation over clattering dishes and nearby tables.</p>
+    </div>
+    <div class="card scenario-card" data-scenario="group" style="cursor:pointer;">
+      <span class="icon">👥</span>
+      <h3 data-i18n="exp.group.h3">Group conversation</h3>
+      <p data-i18n="exp.group.p">Multiple voices overlap as a group conversation moves quickly.</p>
+    </div>
+  </div>
+
+  <div id="simPanel" class="stage" style="display:none; margin-top:40px;">
+    <div class="stage-label" id="simLabel"></div>
+    <h2 id="simTitle"></h2>
+    <p class="instructions" id="simInstructions"></p>
+    <button class="speaker-btn" id="simPlay">🔊</button>
+    <div id="simQuestion" style="display:none;">
+      <p style="font-weight:600; color:var(--text);" data-i18n="exp.sim.question">How much information could you follow?</p>
+      <div class="choice-row">
+        <button class="choice-btn" data-v="most" data-i18n="exp.sim.most">Most of it</button>
+        <button class="choice-btn" data-v="some" data-i18n="exp.sim.some">Some of it</button>
+        <button class="choice-btn" data-v="little" data-i18n="exp.sim.little">Very little</button>
+      </div>
+    </div>
+    <div id="simResult" style="display:none; margin-top:24px;">
+      <p style="color:var(--text);" data-i18n="exp.sim.resultText">Thanks for trying the simulation. This is closer to what many people with hearing loss experience in noisy, fast-moving conversations — every day.</p>
+      <a href="accessibility.html" class="btn-secondary" data-i18n="exp.sim.resultCta">See what can help →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="wrap site-footer">
+  <span data-i18n="footer.tagline">HEAR — a web-based accessibility platform for everyday communication.</span>
+  <span data-i18n="footer.notice">Not a medical device. Does not diagnose hearing loss.</span>
+</footer>
+
+<script>
+// Scenario titles/instructions/sentences follow the UI language via
+// HearI18n; the spoken sentence itself is also read aloud in that
+// language (speechSynthesis lang below), so switching UI language
+// switches what you hear here too, not just the on-screen text.
+function scenarios() {
+  const t = window.HearI18n.t;
+  const lang = window.HearI18n.getLang();
+  return {
+    classroom: {
+      title: t('exp.classroom.h3'),
+      instructions: lang === 'ko'
+        ? '재생 버튼을 눌러 명료도가 낮아지고 교실 소음이 섞인 수업을 들어보세요.'
+        : 'Press play to hear a muffled lesson with classroom chatter layered underneath.',
+      sentence: lang === 'ko'
+        ? '오늘은 신경계와 신호가 몸을 통해 어떻게 전달되는지에 대해 이야기해 볼 거예요.'
+        : 'Today we are going to discuss the nervous system and how signals travel through the body.'
+    },
+    restaurant: {
+      title: t('exp.restaurant.h3'),
+      instructions: lang === 'ko'
+        ? '재생 버튼을 눌러 그릇 부딪히는 소리와 주변 소음 속 대화를 들어보세요.'
+        : 'Press play to hear a conversation over clattering dishes and nearby chatter.',
+      sentence: lang === 'ko'
+        ? '메뉴판 좀 건네줄래요, 오늘 저녁은 수프랑 샐러드로 할까 해요.'
+        : 'Could you pass the menu, I think I want the soup and a salad tonight.'
+    },
+    group: {
+      title: t('exp.group.h3'),
+      instructions: lang === 'ko'
+        ? '재생 버튼을 눌러 빠르게 진행되는 그룹 대화 속 겹치는 목소리를 들어보세요.'
+        : 'Press play to hear overlapping voices moving through a fast conversation.',
+      sentence: lang === 'ko'
+        ? '잠깐, 그러면 금요일에 만나는 거예요 토요일에 만나는 거예요, 그리고 음식은 누가 가져와요?'
+        : 'Wait, so are we meeting Friday or Saturday, and who is bringing the food?'
+    }
+  };
+}
+
+let audioCtx;
+function getCtx() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
+function playNoise(duration) {
+  const ctx = getCtx();
+  const bufferSize = ctx.sampleRate * duration;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.22;
+  const src = ctx.createBufferSource();
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 1800;
+  src.buffer = buffer;
+  src.connect(filter);
+  filter.connect(ctx.destination);
+  src.start();
+  return src;
+}
+function speakMuffled(text) {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) { resolve(); return; }
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = window.HearI18n.getLang() === 'ko' ? 'ko-KR' : 'en-US';
+    utter.rate = 1.05;
+    utter.pitch = 0.9;
+    utter.volume = 0.75;
+    utter.onend = resolve;
+    utter.onerror = resolve;
+    window.speechSynthesis.speak(utter);
+  });
+}
+
+const simPanel = document.getElementById('simPanel');
+const simLabel = document.getElementById('simLabel');
+const simTitle = document.getElementById('simTitle');
+const simInstructions = document.getElementById('simInstructions');
+const simPlay = document.getElementById('simPlay');
+const simQuestion = document.getElementById('simQuestion');
+const simResult = document.getElementById('simResult');
+
+document.getElementById('scenarioGrid').addEventListener('click', (e) => {
+  const card = e.target.closest('.scenario-card');
+  if (!card) return;
+  const s = scenarios()[card.dataset.scenario];
+  simLabel.textContent = window.HearI18n.t('exp.sim.label');
+  simTitle.textContent = s.title;
+  simInstructions.textContent = s.instructions;
+  simQuestion.style.display = 'none';
+  simResult.style.display = 'none';
+  simPanel.style.display = 'block';
+  simPanel.dataset.scenario = card.dataset.scenario;
+  simPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  simPlay.onclick = async () => {
+    const current = scenarios()[simPanel.dataset.scenario];
+    simPlay.classList.add('playing');
+    simPlay.disabled = true;
+    const noise = playNoise(4);
+    await speakMuffled(current.sentence);
+    setTimeout(() => { try { noise.stop(); } catch (e) {} }, 300);
+    simPlay.classList.remove('playing');
+    simPlay.disabled = false;
+    simQuestion.style.display = 'block';
+  };
+});
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('#simQuestion .choice-btn');
+  if (!btn) return;
+  simQuestion.style.display = 'none';
+  simResult.style.display = 'block';
+});
+
+document.addEventListener('hear:langchange', () => {
+  if (simPanel.style.display !== 'none' && simPanel.dataset.scenario) {
+    const s = scenarios()[simPanel.dataset.scenario];
+    simLabel.textContent = window.HearI18n.t('exp.sim.label');
+    simTitle.textContent = s.title;
+    simInstructions.textContent = s.instructions;
+  }
+});
+</script>
+</body>
+</html>

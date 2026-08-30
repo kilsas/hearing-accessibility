@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="sign.title">Sign to Text — HEAR</title>
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/i18n.js"></script>
+</head>
+<body>
+
+<header class="wrap site-header">
+  <a href="index.html" class="logo"><span class="dot"></span> HEAR</a>
+  <nav class="nav">
+    <a href="screening.html" data-i18n="nav.screening">Check My Experience</a>
+    <a href="hear.html" data-i18n="nav.hear">Live Hear</a>
+    <a href="sign.html" class="active" data-i18n="nav.sign">Sign to Text</a>
+    <a href="accessibility.html" data-i18n="nav.accessibility">Accessibility Guide</a>
+    <a href="experience.html" data-i18n="nav.experience">Experience</a>
+    <a href="insights.html" data-i18n="nav.insights">Insights</a>
+    <a href="about.html" data-i18n="nav.about">About</a>
+  </nav>
+  <div class="lang-toggle" id="uiLangToggle">
+    <button data-ui-lang="en">EN</button>
+    <button data-ui-lang="ko">한국어</button>
+  </div>
+</header>
+
+<main class="wrap" style="padding: 30px 28px 100px; max-width: 780px;">
+  <div class="kicker" data-i18n="sign.kicker">Experimental · V2</div>
+  <h1 style="font-size:36px;" data-i18n="sign.h1">Sign to Text</h1>
+  <p style="font-size:16.5px; max-width:560px;" data-i18n="sign.sub">Communicate through signs, words, or both. This experimental tool tracks both hands and recognizes a limited set of signs — including their motion, not just a still hand shape — using your camera.</p>
+
+  <div class="notice">
+    <strong data-i18n="sign.notice">Prototype notice: This tool recognizes a limited vocabulary of 15 signs, trained on video sequences recorded in your browser. It should not be used as a substitute for professional interpretation, and accuracy depends entirely on the training data you or others provide.</strong>
+  </div>
+
+  <div id="datasetNotice" class="notice" style="display:none;"></div>
+
+  <div class="section-head" style="margin-top:36px; margin-bottom:16px;">
+    <h2 style="font-size:20px;" data-i18n="sign.selectLang.h2">Select your sign language</h2>
+  </div>
+  <div class="lang-select-grid" id="langSelectGrid">
+    <div class="lang-card active" data-lang="ASL">
+      <span class="flag">🇺🇸</span>
+      <div class="title">American Sign Language</div>
+      <div class="sub">ASL → English</div>
+    </div>
+    <div class="lang-card" data-lang="KSL">
+      <span class="flag">🇰🇷</span>
+      <div class="title">한국어 수어 (KSL)</div>
+      <div class="sub">KSL → 한국어</div>
+    </div>
+  </div>
+
+  <div class="vocab-strip-header">
+    <span id="vocabCount" class="vocab-count"></span>
+    <a href="collect.html" class="add-sign-link" data-i18n="sign.addSignCta">Can't find your sign? + Add New Sign</a>
+  </div>
+  <div class="vocab-strip" id="vocabStrip"></div>
+
+  <div id="permissionPanel" class="stage" style="margin-top:32px;">
+    <div class="stage-label" data-i18n="sign.perm.label">Camera access required</div>
+    <h2 data-i18n="sign.perm.h2">Allow camera access</h2>
+    <p class="instructions" data-i18n="sign.perm.p">HEAR uses your camera to analyze hand movements locally in your browser. Your camera feed is not uploaded.</p>
+    <button class="btn-primary" id="startCameraBtn" data-i18n="sign.perm.btn">🎥 Allow Camera</button>
+  </div>
+
+  <div id="cameraSection" style="display:none; margin-top:32px;">
+    <div class="camera-wrap">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="overlay"></canvas>
+      <div class="camera-placeholder" id="cameraPlaceholder">✋</div>
+    </div>
+
+    <div class="hands-status">
+      <span class="hand-chip" id="leftChip" data-i18n="sign.leftHand">Left hand</span>
+      <span class="hand-chip" id="rightChip" data-i18n="sign.rightHand">Right hand</span>
+    </div>
+
+    <div class="card" id="diagnosticsCard" style="margin:16px 0; max-width:420px;">
+      <h3 style="font-size:15px;" data-i18n="sign.diag.h3">Hand detection test</h3>
+      <p style="font-size:13px; color:var(--text-faint);" id="diagnosticsInstructions" data-i18n="sign.diag.p">Before recognizing signs, confirm the camera reads your left and right hand correctly.</p>
+      <div id="diagnosticsIdle">
+        <button class="btn-secondary" id="startDiagnosticsBtn" data-i18n="sign.diag.run">Run hand test</button>
+      </div>
+      <div id="diagnosticsRunning" style="display:none;">
+        <div style="font-weight:700; color:var(--text); margin-bottom:8px;" id="diagnosticsPrompt" data-i18n="sign.diag.promptLeft">Raise your LEFT hand.</div>
+        <div class="hands-status">
+          <span class="hand-chip" id="diagLeftChip" data-i18n="sign.leftHand">Left hand</span>
+          <span class="hand-chip" id="diagRightChip" data-i18n="sign.rightHand">Right hand</span>
+        </div>
+      </div>
+      <div id="diagnosticsDone" style="display:none;">
+        <p style="color:var(--text); font-weight:600;" data-i18n="sign.diag.done">✓ Test complete — left/right detection looks correct.</p>
+        <button class="btn-secondary" id="retryDiagnosticsBtn" data-i18n="sign.diag.retry">Run again</button>
+      </div>
+    </div>
+
+    <div class="prediction-panel">
+      <div class="detected-label" data-i18n="sign.detectedLabel">Detected sign</div>
+      <div class="detected-sign" id="detectedSign">—</div>
+      <div class="confidence" id="confidenceText" data-i18n="sign.confidenceDefault">Show a sign to the camera and hold the motion for a moment</div>
+      <div class="choice-row">
+        <button class="btn-primary" id="addBtn" disabled data-i18n="sign.addBtn">Add</button>
+        <button class="btn-secondary" id="clearLiveBtn" data-i18n="sign.clearBtn">Clear</button>
+      </div>
+    </div>
+
+    <div class="sentence-builder">
+      <h3 style="font-size:15px; margin-bottom:10px;" data-i18n="sign.recognized.h3">Recognized signs</h3>
+      <div class="sign-chips" id="signChips"></div>
+      <div class="choice-row" style="justify-content:flex-start;">
+        <button class="btn-secondary" id="undoBtn" data-i18n="sign.undo">← Undo</button>
+        <button class="btn-secondary" id="clearSentenceBtn" data-i18n="sign.clearSentence">Clear sentence</button>
+        <button class="btn-secondary" id="speakBtn" disabled data-i18n="sign.speak">🔊 Speak</button>
+      </div>
+      <div id="suggestedPhrase" class="suggested-phrase" style="display:none;"></div>
+    </div>
+
+  </div>
+
+  <p style="margin-top:36px; font-size:14px;" id="footerNote">
+    Want to improve accuracy or add your own signs? Use the <a href="collect.html">data collection tool</a> to record training sequences, or check the <a href="collect.html#accuracy">current model accuracy</a>.
+  </p>
+</main>
+
+<footer class="wrap site-footer">
+  <span data-i18n="footer.tagline">HEAR — a web-based accessibility platform for everyday communication.</span>
+  <span data-i18n="footer.notice">Not a medical device. Does not diagnose hearing loss.</span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<!-- Firebase SDK: powers live sign sharing (see js/shared-sync.js). Harmless
+     to load even before js/firebase-config.js has real values filled in —
+     shared-sync.js simply stays in "not configured" mode until then. -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/shared-sync.js"></script>
+<script src="js/hand-tracking.js"></script>
+<script src="js/sign-classifier.js"></script>
+<script src="js/sign.js"></script>
+</body>
+</html>
