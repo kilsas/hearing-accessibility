@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="collect.title">Sign Data Collection — HEAR</title>
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/i18n.js"></script>
+<style>
+  .bar-chart { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+  .bar-row .track { height: 12px; background: var(--border); border-radius: 6px; overflow: hidden; }
+  .bar-row .fill { height: 100%; background: var(--accent); border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<header class="wrap site-header">
+  <a href="index.html" class="logo"><span class="dot"></span> HEAR</a>
+  <nav class="nav">
+    <a href="sign.html" data-i18n="collect.back">← Back to Sign to Text</a>
+  </nav>
+  <div class="lang-toggle" id="uiLangToggle">
+    <button data-ui-lang="en">EN</button>
+    <button data-ui-lang="ko">한국어</button>
+  </div>
+</header>
+
+<main class="wrap" style="padding: 30px 28px 100px;">
+  <div class="kicker" data-i18n="collect.kicker">Developer tool · V2</div>
+  <h1 style="font-size:34px;" data-i18n="collect.h1">Sign Data Collection</h1>
+  <p style="font-size:16px; max-width:600px;" data-i18n="collect.p">Record short video sequences of each sign to train HEAR's on-device sign classifier. Each recording captures both hands, frame by frame, so the model can learn the motion of a sign — not just a single hand pose. Nothing here is uploaded — sequences are stored in this browser's local storage.</p>
+
+  <div class="section-head" style="margin-top:28px; margin-bottom:12px;">
+    <h2 style="font-size:20px;" data-i18n="collect.langSection.h2">Language / dataset</h2>
+    <p style="font-size:14px; max-width:600px;" data-i18n="collect.langSection.p">ASL and KSL are separate vocabularies with separate datasets and separate models — sequences you record here only ever train the language selected below.</p>
+  </div>
+  <div class="lang-select-grid" id="langSelectGrid">
+    <div class="lang-card active" data-lang="ASL">
+      <span class="flag">🇺🇸</span>
+      <div class="title">American Sign Language</div>
+      <div class="sub">ASL</div>
+    </div>
+    <div class="lang-card" data-lang="KSL">
+      <span class="flag">🇰🇷</span>
+      <div class="title">한국어 수어 (KSL)</div>
+      <div class="sub">KSL</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px; max-width:520px;">
+    <h3 style="font-size:15px;" data-i18n="collect.addSign.h3">Add a new sign</h3>
+    <p style="font-size:13.5px; color:var(--text-faint);" data-i18n="collect.addSign.p">This only creates the label — you (or another collector) still have to record real sequences of the sign for it to be useful. Adding a word does not generate its sign.</p>
+    <div style="display:flex; gap:10px; margin-top:10px;">
+      <input type="text" id="newSignInput" placeholder="e.g. GOODBYE or 안녕히 가세요" data-i18n="collect.addSign.placeholder" data-i18n-attr="placeholder" style="flex:1; padding:12px; border-radius:8px; border:1.5px solid var(--border); font-size:15px;">
+      <button class="btn-secondary" id="addSignBtn" data-i18n="collect.addSign.btn">Add sign</button>
+    </div>
+  </div>
+
+  <div id="permissionPanel" class="stage" style="margin-top:24px; max-width:100%;">
+    <div class="stage-label" data-i18n="collect.perm.label">Camera access required</div>
+    <h2 data-i18n="collect.perm.h2">Allow camera access</h2>
+    <p class="instructions" data-i18n="collect.perm.p">Your camera feed is processed locally and is not uploaded by HEAR.</p>
+    <button class="btn-primary" id="startCameraBtn" data-i18n="collect.perm.btn">🎥 Allow Camera</button>
+  </div>
+
+  <div id="cameraSection" style="display:none; margin-top:24px;">
+    <div class="collect-grid">
+      <div>
+        <div class="camera-wrap" style="margin:0;">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="overlay"></canvas>
+          <div class="camera-placeholder" id="cameraPlaceholder">✋</div>
+        </div>
+
+        <div class="hands-status">
+          <span class="hand-chip" id="leftChip" data-i18n="collect.leftHand">Left hand</span>
+          <span class="hand-chip" id="rightChip" data-i18n="collect.rightHand">Right hand</span>
+        </div>
+
+        <div class="record-panel">
+          <div id="idleRecordState">
+            <button class="btn-primary" id="startRecordBtn" style="width:100%;" disabled data-i18n="collect.startRecord">🎥 Start Recording</button>
+            <p style="font-size:12.5px; color:var(--text-faint); margin-top:8px;" data-i18n="collect.recordHint">Records for up to 10 seconds — sign the word once, then press Stop (or let it stop on its own).</p>
+          </div>
+          <div id="activeRecordState" style="display:none;">
+            <div class="record-dot"><span class="pulse"></span> <span data-i18n="collect.recording">Recording</span></div>
+            <div class="record-timer" id="recordTimer">00:00</div>
+            <button class="btn-secondary" id="stopRecordBtn" style="width:100%;" data-i18n="collect.stop">⏹ Stop Recording</button>
+          </div>
+          <div id="reviewRecordState" style="display:none;">
+            <div class="sequence-summary" id="sequenceSummary"></div>
+            <div class="card" style="margin-top:14px; padding:14px 16px;">
+              <h3 style="font-size:14px; margin-bottom:10px;" data-i18n="collect.consent.h3">Before you save this sequence</h3>
+              <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer; margin-bottom:10px;">
+                <input type="radio" name="shareConsent" value="personal" checked style="margin-top:3px;">
+                <span>
+                  <span style="font-weight:600; font-size:14px;" data-i18n="collect.consent.personal">Add to my personal model only</span><br>
+                  <span style="font-size:12.5px; color:var(--text-faint);" data-i18n="collect.consent.personal.sub">Stays in this browser. Used for your own accuracy testing, never included in a shared export.</span>
+                </span>
+              </label>
+              <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+                <input type="radio" name="shareConsent" value="shared" style="margin-top:3px;">
+                <span>
+                  <span style="font-weight:600; font-size:14px;" data-i18n="collect.consent.shared">Contribute to HEAR's shared model</span><br>
+                  <span style="font-size:12.5px; color:var(--text-faint);" data-i18n="collect.consent.shared.sub">Included when you export a shared-contribution file for someone to merge into the community dataset.</span>
+                </span>
+              </label>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:14px;">
+              <button class="btn-primary" id="saveSequenceBtn" style="flex:1;" data-i18n="collect.save">Save Sequence</button>
+              <button class="btn-secondary" id="retrySequenceBtn" style="flex:1;" data-i18n="collect.retry">Record Again</button>
+            </div>
+          </div>
+          <p id="tooShortNotice" style="display:none; color:#B34A3D; font-size:13.5px; margin-top:10px;" data-i18n="collect.tooShort">That recording was too short — hold the sign for at least a second or two and try again.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="setting-group" style="margin-bottom:18px;">
+          <div class="label" data-i18n="collect.collectorLabel">Collector name</div>
+          <input type="text" id="collectorInput" placeholder="e.g. your name or initials" data-i18n="collect.collectorPlaceholder" data-i18n-attr="placeholder" style="width:100%; padding:12px; border-radius:8px; border:1.5px solid var(--border); font-size:15px;">
+          <p style="font-size:12.5px; color:var(--text-faint); margin-top:6px;" data-i18n="collect.collectorHint">Recording sequences from more than one person lets HEAR measure how well the model recognizes signs from someone it has never seen before — see "Unseen-participant accuracy" below.</p>
+        </div>
+        <div class="setting-group" style="margin-bottom:18px;">
+          <div class="label" data-i18n="collect.selectSign">Select sign</div>
+          <select id="signSelect" style="width:100%; padding:12px; border-radius:8px; border:1.5px solid var(--border); font-size:15px;"></select>
+        </div>
+        <p style="text-align:center; margin-top:14px; font-size:14px;"><span data-i18n="collect.sampleCountText">Sequences collected for this sign:</span> <strong id="sampleCount">0</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <section style="margin-top:48px;">
+    <h2 style="font-size:22px;" data-i18n="collect.dataset.h2">Dataset</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="font-size:15px;" data-i18n="collect.perSign.h3">Sequences per sign</h3>
+        <ul class="dataset-list" id="datasetList"></ul>
+      </div>
+      <div class="card">
+        <h3 style="font-size:15px;" data-i18n="collect.manage.h3">Manage dataset</h3>
+        <p style="font-size:14px;" data-i18n="collect.manage.p">Export your recordings to back them up or share with a collaborator, or import a dataset someone else recorded.</p>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
+          <button class="btn-secondary" id="exportBtn" data-i18n="collect.export">Export my dataset (.json)</button>
+          <label class="btn-secondary" style="text-align:center; display:block;">
+            <span data-i18n="collect.import">Import dataset (merges in)</span>
+            <input type="file" id="importInput" accept="application/json" style="display:none;">
+          </label>
+          <p style="font-size:12px; color:var(--text-faint); margin:0;" data-i18n="collect.importMerge.notice">Importing merges these sequences into your existing dataset — it does not replace or delete anything you already recorded.</p>
+          <button class="btn-secondary" id="clearAllBtn" style="color:#B34A3D; border-color:#E3B3A9; margin-top:6px;" data-i18n="collect.clearAll">Clear all sequences</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+      <h3 style="font-size:15px;" data-i18n="collect.sharedPanel.h3">Shared model contribution</h3>
+      <p style="font-size:13.5px; color:var(--text-faint);" data-i18n="collect.sharedPanel.p">HEAR doesn't have a live server yet, so &ldquo;shared model&rdquo; today means: sequences marked as shared can be exported as a separate file, handed to a maintainer, checked over, and merged into a community dataset that gets redistributed for everyone to import. Nothing is uploaded automatically.</p>
+      <p id="sharedGateText" style="font-size:12.5px; color:var(--text-faint);"></p>
+      <h4 style="font-size:13px; margin-top:14px; margin-bottom:6px;" data-i18n="collect.sharedReady.h3">Ready to contribute</h4>
+      <ul class="dataset-list" id="sharedReadyList"></ul>
+      <button class="btn-secondary" id="exportSharedBtn" style="margin-top:14px;" data-i18n="collect.exportShared">Export shared contribution (.json)</button>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+      <h3 style="font-size:15px;" data-i18n="collect.perCollector.h3">Sequences per collector</h3>
+      <p style="font-size:13.5px; color:var(--text-faint);" data-i18n="collect.perCollector.p">Only collectors who've actually recorded sequences appear here.</p>
+      <div id="collectorTable" style="margin-top:12px; overflow-x:auto;"></div>
+    </div>
+  </section>
+
+  <section id="accuracy" style="margin-top:48px;">
+    <h2 style="font-size:22px;" data-i18n="collect.accuracy.h2">Model accuracy</h2>
+    <p style="font-size:14.5px; max-width:600px;" data-i18n="collect.accuracy.p">Estimated with leave-one-out cross-validation over your recorded sequences: each sequence is compared frame-by-frame against every other sequence, so this reflects real performance on your data — not a placeholder number.</p>
+    <button class="btn-primary" id="evalBtn" data-i18n="collect.evalBtn">Evaluate accuracy</button>
+    <div id="accuracyResult" style="margin-top:20px;"></div>
+    <div id="confusionResult" style="margin-top:28px;"></div>
+  </section>
+
+  <section id="generalization" style="margin-top:48px;">
+    <h2 style="font-size:22px;" data-i18n="collect.generalization.h2">Unseen-participant accuracy</h2>
+    <p style="font-size:14.5px; max-width:620px;" data-i18n="collect.generalization.p">This holds out one collector's sequences at a time, trains only on everyone else's, and tests against the held-out person. It answers a different question than the number above: not "does the model remember this data" but "does it generalize to someone it has never seen sign before." Needs at least two collectors' worth of sequences.</p>
+    <div id="generalizationResult" style="margin-top:20px;"></div>
+  </section>
+</main>
+
+<footer class="wrap site-footer">
+  <span data-i18n="footer.tagline">HEAR — a web-based accessibility platform for everyday communication.</span>
+  <span data-i18n="footer.notice">Not a medical device. Does not diagnose hearing loss.</span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="js/hand-tracking.js"></script>
+<script src="js/sign-classifier.js"></script>
+<script src="js/collect.js"></script>
+</body>
+</html>
