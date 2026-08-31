@@ -31,8 +31,8 @@
       metricCard('metric.detectionLeft', p.detectionLeft, T('metric.tonesSub', { n: p.detectionLeft !== null ? Math.round(p.detectionLeft / 20) : 0 })),
       metricCard('metric.detectionRight', p.detectionRight, T('metric.tonesSub', { n: p.detectionRight !== null ? Math.round(p.detectionRight / 20) : 0 })),
       metricCard('metric.localization', p.localization, T('metric.localizationSub')),
-      metricCard('metric.speechQuiet', p.speechQuiet, T('metric.speechSub')),
-      metricCard('metric.speechNoise', p.speechNoise, T('metric.speechSub'))
+      metricCard('metric.speechQuiet', p.speechQuiet, T('metric.speechQuietSub')),
+      metricCard('metric.speechNoise', p.speechNoise, T('metric.speechNoiseSub'))
     ].join('');
   }
 
