@@ -10,10 +10,41 @@
   const stageCounter = document.getElementById('stageCounter');
 
   let audioCtx = null;
+  // iOS keeps a Web Audio context "suspended" until it is resumed from a
+  // tap, and by default mutes it when the side switch is on silent. So:
+  // ask the audio session for playback mode, resume the context, and
+  // unlock it on the very first touch anywhere on the page.
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
   function getCtx() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') { try { audioCtx.resume(); } catch (e) {} }
     return audioCtx;
   }
+  // Playing a (silent) <audio> element moves iOS into the "playback"
+  // audio session, which is what makes Web Audio ignore the silent switch.
+  let silentEl = null;
+  function startPlaybackSession() {
+    try {
+      if (!silentEl) {
+        silentEl = new Audio('data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        silentEl.loop = true;
+        silentEl.setAttribute('playsinline', '');
+      }
+      const p = silentEl.play();
+      if (p && p.catch) p.catch(() => {});
+    } catch (e) {}
+  }
+  function unlockAudio() {
+    startPlaybackSession();
+    try {
+      const ctx = getCtx();
+      const b = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = b; src.connect(ctx.destination); src.start(0);
+    } catch (e) {}
+  }
+  ['touchend', 'pointerdown', 'click'].forEach((ev) =>
+    document.addEventListener(ev, unlockAudio, { passive: true }));
 
   // ---- results storage ----
   const results = {
@@ -26,7 +57,8 @@
   // ---- overall flow ----
   const DETECTION_TRIALS_PER_SIDE = 5;
   const LOCALIZATION_TRIALS = 6;
-  const SENTENCES_PER_MODE = 2; // how many quiet/noise sentences exist, in every language
+  const SENTENCES_PER_MODE = 2;   // how many sentences are actually shown per attempt
+  const SENTENCE_POOL_SIZE = 100;  // how many candidate sentences exist per mode, in every language — see i18n.js's screen.quiet.0..99 / screen.noise.0..99
 
   // Screening sentences follow the current UI language — this is what's
   // actually being tested (can you make out this spoken sentence), so a
@@ -36,8 +68,29 @@
   // the hear:langchange listener at the bottom of this file — picks up
   // the new language's sentences on the next render, same as every other
   // piece of on-screen text.
-  function sentenceFor(mode, n) {
-    return T('screen.' + mode + '.' + n);
+  //
+  // `poolIndex` (which of the SENTENCE_POOL_SIZE candidates this is) is
+  // what selects the actual sentence text — separate from `n` (this
+  // step's position within THIS attempt, used only for the "1 of 2"
+  // display counter), so the display always reads "1 of 2" etc. even
+  // though which two sentences those are changes attempt to attempt.
+  function sentenceFor(mode, poolIndex) {
+    return T('screen.' + mode + '.' + poolIndex);
+  }
+
+  // Picks `count` distinct random indices from [0, poolSize) — a
+  // partial Fisher–Yates shuffle. Used so each attempt at the
+  // screening draws a different (and differently ordered) subset of
+  // sentences from the pool, instead of always the same ones in the
+  // same order.
+  function pickRandomIndices(poolSize, count) {
+    const pool = [];
+    for (let i = 0; i < poolSize; i++) pool.push(i);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+    }
+    return pool.slice(0, count);
   }
 
   let flow = [];
@@ -48,8 +101,10 @@
     for (let i = 0; i < DETECTION_TRIALS_PER_SIDE; i++) flow.push({ type: 'detection', side: 'left', n: i });
     for (let i = 0; i < DETECTION_TRIALS_PER_SIDE; i++) flow.push({ type: 'detection', side: 'right', n: i });
     for (let i = 0; i < LOCALIZATION_TRIALS; i++) flow.push({ type: 'localization', n: i });
-    for (let i = 0; i < SENTENCES_PER_MODE; i++) flow.push({ type: 'speech', mode: 'quiet', n: i });
-    for (let i = 0; i < SENTENCES_PER_MODE; i++) flow.push({ type: 'speech', mode: 'noise', n: i });
+    const quietPicks = pickRandomIndices(SENTENCE_POOL_SIZE, SENTENCES_PER_MODE);
+    const noisePicks = pickRandomIndices(SENTENCE_POOL_SIZE, SENTENCES_PER_MODE);
+    quietPicks.forEach((poolIndex, i) => flow.push({ type: 'speech', mode: 'quiet', n: i, poolIndex }));
+    noisePicks.forEach((poolIndex, i) => flow.push({ type: 'speech', mode: 'noise', n: i, poolIndex }));
     flow.push({ type: 'done' });
   }
 
@@ -75,6 +130,7 @@
   // ---- audio helpers ----
   function playTone({ pan = 0, duration = 0.5, freq = 700 } = {}) {
     return new Promise((resolve) => {
+      startPlaybackSession();
       const ctx = getCtx();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -177,7 +233,7 @@
       <div class="stage-label">${T('screen.detection.label', { side: sideLabel })}</div>
       <h2>${T('screen.detection.h2')}</h2>
       <p class="instructions">${T('screen.detection.p')}</p>
-      <button class="speaker-btn" id="playBtn" aria-label="Play sound">🔊</button>
+      <button class="speaker-btn" id="playBtn" aria-label="Play sound">Play</button>
       <div class="choice-row" id="choiceRow" style="visibility:hidden;">
         <button class="choice-btn" data-v="yes">${T('screen.yes')}</button>
         <button class="choice-btn" data-v="no">${T('screen.no')}</button>
@@ -211,7 +267,7 @@
       <div class="stage-label">${T('screen.local.label')}</div>
       <h2>${T('screen.local.h2')}</h2>
       <p class="instructions">${T('screen.local.p')}</p>
-      <button class="speaker-btn" id="playBtn" aria-label="Play sound">🔊</button>
+      <button class="speaker-btn" id="playBtn" aria-label="Play sound">Play</button>
       <div class="choice-row" id="choiceRow" style="visibility:hidden;">
         <button class="choice-btn" data-v="left">${T('screen.local.left')}</button>
         <button class="choice-btn" data-v="center">${T('screen.local.center')}</button>
@@ -243,12 +299,12 @@
     // — handled by the hear:langchange listener below — the sentence
     // they see/hear/are scored against updates too instead of staying
     // stuck in whatever language the flow was originally built in.
-    const sentenceText = sentenceFor(step.mode, step.n);
+    const sentenceText = sentenceFor(step.mode, step.poolIndex);
     stageEl.innerHTML = `
       <div class="stage-label">${isNoise ? T('screen.speech.labelNoise') : T('screen.speech.labelQuiet')}</div>
       <h2>${T('screen.speech.h2')}</h2>
       <p class="instructions">${T('screen.speech.p', { noiseNote: isNoise ? T('screen.speech.noiseNote') : '' })}</p>
-      <button class="speaker-btn" id="playBtn" aria-label="Play sentence">🔊</button>
+      <button class="speaker-btn" id="playBtn" aria-label="Play sentence">Play</button>
       <div class="text-input-row" id="inputRow" style="visibility:hidden;">
         <input type="text" id="answerInput" placeholder="${T('screen.speech.placeholder')}">
         <button class="btn-primary" id="submitBtn">${T('screen.speech.submit')}</button>

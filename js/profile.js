@@ -65,12 +65,12 @@
 
   // ---- recommendations, chosen based on lowest scores ----
   const allRecs = {
-    speechNoise: { icon: '🔇', titleKey: 'rec.speechNoise.title', bodyKey: 'rec.speechNoise.body' },
-    detectionRight: { icon: '🪑', titleKey: 'rec.detection.title', bodyKey: 'rec.detection.body' },
-    detectionLeft: { icon: '🪑', titleKey: 'rec.detection.title', bodyKey: 'rec.detection.body' },
-    localization: { icon: '👀', titleKey: 'rec.localization.title', bodyKey: 'rec.localization.body' },
-    speechQuiet: { icon: '📝', titleKey: 'rec.speechQuiet.title', bodyKey: 'rec.speechQuiet.body' },
-    default: { icon: '📝', titleKey: 'rec.default.title', bodyKey: 'rec.default.body' }
+    speechNoise: { titleKey: 'rec.speechNoise.title', bodyKey: 'rec.speechNoise.body' },
+    detectionRight: { titleKey: 'rec.detection.title', bodyKey: 'rec.detection.body' },
+    detectionLeft: { titleKey: 'rec.detection.title', bodyKey: 'rec.detection.body' },
+    localization: { titleKey: 'rec.localization.title', bodyKey: 'rec.localization.body' },
+    speechQuiet: { titleKey: 'rec.speechQuiet.title', bodyKey: 'rec.speechQuiet.body' },
+    default: { titleKey: 'rec.default.title', bodyKey: 'rec.default.body' }
   };
 
   function renderRecs(weakest) {
@@ -78,9 +78,16 @@
     if (!recKeys.length) recKeys.push('default');
     const recSet = new Set(recKeys.map((k) => allRecs[k] || allRecs.default));
     recSet.add(allRecs.default);
-    document.getElementById('recsGrid').innerHTML = [...recSet].slice(0, 4).map((r) => `
+    // Several keys can map to the same card (e.g. left/right detection) —
+    // show each distinct title only once.
+    const seenTitles = new Set();
+    const recList = [...recSet].filter((r) => {
+      if (seenTitles.has(r.titleKey)) return false;
+      seenTitles.add(r.titleKey);
+      return true;
+    });
+    document.getElementById('recsGrid').innerHTML = recList.slice(0, 4).map((r) => `
       <div class="rec-card">
-        <span class="icon">${r.icon}</span>
         <div><h4>${T(r.titleKey)}</h4><p>${T(r.bodyKey)}</p></div>
       </div>
     `).join('');

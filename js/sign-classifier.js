@@ -56,8 +56,8 @@ window.HearSignClassifier = (function () {
   const LANGUAGES = {
     ASL: {
       code: 'ASL',
-      name: 'English / ASL',
       flag: '🇺🇸',
+      name: 'English / ASL',
       vocab: [
         'HELLO', 'THANK YOU', 'PLEASE', 'YES', 'NO', 'HELP', 'STOP', 'MORE',
         'GOOD', 'BAD', 'SORRY', 'I / ME', 'YOU', 'WANT', 'NEED'
@@ -65,8 +65,8 @@ window.HearSignClassifier = (function () {
     },
     KSL: {
       code: 'KSL',
-      name: '한국어 / KSL',
       flag: '🇰🇷',
+      name: '한국어 / KSL',
       vocab: [
         '안녕하세요', '감사합니다', '부탁해요', '네', '아니요', '도와주세요', '그만', '더',
         '좋아요', '나빠요', '미안해요', '저', '당신', '원해요', '필요해요'

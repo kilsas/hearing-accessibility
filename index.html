@@ -2,22 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
 <title data-i18n="index.title">HEAR — Making everyday communication more accessible.</title>
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/i18n.js"></script>
+<script src="js/no-double-tap.js"></script>
+<script src="js/nav-toggle.js"></script>
 </head>
 <body>
 
 <header class="wrap site-header">
   <a href="index.html" class="logo"><span class="dot"></span> HEAR</a>
-  <nav class="nav">
+  <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  <nav class="nav" id="siteNav">
     <a href="screening.html" data-i18n="nav.screening">Check My Experience</a>
     <a href="hear.html" data-i18n="nav.hear">Live Hear</a>
     <a href="sign.html" data-i18n="nav.sign">Sign to Text</a>
     <a href="accessibility.html" data-i18n="nav.accessibility">Accessibility Guide</a>
-    <a href="experience.html" data-i18n="nav.experience">Experience</a>
     <a href="insights.html" data-i18n="nav.insights">Insights</a>
+    <a href="profile.html" data-i18n="nav.profile">My Results</a>
     <a href="about.html" data-i18n="nav.about">About</a>
   </nav>
   <div class="lang-toggle" id="uiLangToggle">
@@ -55,17 +58,14 @@
     </div>
     <div class="grid-3">
       <div class="card">
-        <span class="icon">💬</span>
         <h3 data-i18n="index.problem.c1.h3">Communication</h3>
         <p data-i18n="index.problem.c1.p">Following conversations, especially in groups where more than one voice competes for attention.</p>
       </div>
       <div class="card">
-        <span class="icon">🏫</span>
         <h3 data-i18n="index.problem.c2.h3">Environment</h3>
         <p data-i18n="index.problem.c2.p">Classrooms, restaurants, meetings, and public spaces each present a different kind of listening challenge.</p>
       </div>
       <div class="card">
-        <span class="icon">🔊</span>
         <h3 data-i18n="index.problem.c3.h3">Sound</h3>
         <p data-i18n="index.problem.c3.p">Locating and recognizing sounds around you — not just whether you can hear them at all.</p>
       </div>
@@ -85,17 +85,14 @@
     </div>
     <div class="grid-3">
       <div class="card">
-        <span class="icon">🔎</span>
         <h3 data-i18n="index.how.c1.h3">1. Check your experience</h3>
         <p data-i18n="index.how.c1.p">A short interactive screening explores how you respond to different sounds and listening conditions.</p>
       </div>
       <div class="card">
-        <span class="icon">🧠</span>
         <h3 data-i18n="index.how.c2.h3">2. See your profile</h3>
         <p data-i18n="index.how.c2.p">Get a personalized listening profile with the situations that may be more challenging for you.</p>
       </div>
       <div class="card">
-        <span class="icon">🎙</span>
         <h3 data-i18n="index.how.c3.h3">3. Use Live Hear</h3>
         <p data-i18n="index.how.c3.p">Turn speech into live captions for real conversations, right from your phone or laptop.</p>
       </div>

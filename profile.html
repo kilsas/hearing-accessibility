@@ -2,22 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
 <title data-i18n="profile.title">Your Listening Profile — HEAR</title>
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/i18n.js"></script>
+<script src="js/no-double-tap.js"></script>
+<script src="js/nav-toggle.js"></script>
 </head>
 <body>
 
 <header class="wrap site-header">
   <a href="index.html" class="logo"><span class="dot"></span> HEAR</a>
-  <nav class="nav">
+  <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  <nav class="nav" id="siteNav">
     <a href="screening.html" data-i18n="nav.screening">Check My Experience</a>
     <a href="hear.html" data-i18n="nav.hear">Live Hear</a>
     <a href="sign.html" data-i18n="nav.sign">Sign to Text</a>
     <a href="accessibility.html" data-i18n="nav.accessibility">Accessibility Guide</a>
-    <a href="experience.html" data-i18n="nav.experience">Experience</a>
     <a href="insights.html" data-i18n="nav.insights">Insights</a>
+    <a href="profile.html" data-i18n="nav.profile">My Results</a>
     <a href="about.html" data-i18n="nav.about">About</a>
   </nav>
   <div class="lang-toggle" id="uiLangToggle">
@@ -40,7 +43,7 @@
         <h2 data-i18n="profile.results.h2">Your Listening Profile</h2>
         <p data-i18n="profile.results.p">These results describe your performance during this screening and should not be interpreted as an audiogram or medical diagnosis.</p>
       </div>
-      <div class="grid-3" id="metricsGrid" style="grid-template-columns: repeat(3, 1fr);"></div>
+      <div class="grid-3" id="metricsGrid"></div>
     </section>
 
     <section class="wrap">
@@ -88,9 +91,9 @@
       </div>
     </section>
 
-    <section class="wrap" style="text-align:center; padding: 40px 0 80px;">
+    <section class="wrap" style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; padding: 40px 0 80px;">
       <a href="hear.html" class="btn-primary" data-i18n="profile.cta.hear">Try Live Hear →</a>
-      <a href="screening.html" class="btn-secondary" style="margin-left:12px;" data-i18n="profile.cta.retake">Retake Screening</a>
+      <a href="screening.html" class="btn-secondary" data-i18n="profile.cta.retake">Retake Screening</a>
     </section>
   </div>
 </main>

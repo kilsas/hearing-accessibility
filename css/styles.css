@@ -86,7 +86,8 @@ a:focus-visible, button:focus-visible, input:focus-visible,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 22px 0;
+  padding-top: 22px;
+  padding-bottom: 22px;
 }
 
 .logo {
@@ -115,6 +116,34 @@ a:focus-visible, button:focus-visible, input:focus-visible,
 .nav a:hover { color: var(--text); text-decoration: none; }
 .nav a.active { color: var(--accent); }
 
+/* Mobile hamburger button — hidden on desktop, shown only under the
+   860px breakpoint where .nav switches to a dropdown (see below). */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-raised);
+  flex-shrink: 0;
+}
+.nav-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  margin: 0 auto;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform .18s var(--ease), opacity .18s var(--ease);
+}
+.nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
 .lang-toggle {
   display: flex;
   gap: 2px;
@@ -124,6 +153,7 @@ a:focus-visible, button:focus-visible, input:focus-visible,
   border-radius: 999px;
 }
 .lang-toggle button {
+  white-space: nowrap;
   border: none;
   background: transparent;
   padding: 5px 11px;
@@ -164,7 +194,8 @@ a:focus-visible, button:focus-visible, input:focus-visible,
 
 /* Hero */
 .hero {
-  padding: 96px 0 72px;
+  padding-top: 96px;
+  padding-bottom: 72px;
   position: relative;
 }
 .hero .eyebrow {
@@ -314,7 +345,8 @@ section { padding: 64px 0; }
 /* Footer */
 .site-footer {
   border-top: 1px solid var(--border);
-  padding: 40px 0 60px;
+  padding-top: 40px;
+  padding-bottom: 60px;
   margin-top: 40px;
   color: var(--text-faint);
   font-size: 13.5px;
@@ -366,7 +398,7 @@ section { padding: 64px 0; }
   border: none;
   background: var(--accent);
   color: #fff;
-  font-size: 34px;
+  font-size: 20px; font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -768,7 +800,96 @@ section { padding: 64px 0; }
 @media (max-width: 860px) {
   .grid-3 { grid-template-columns: 1fr; }
   .grid-2 { grid-template-columns: 1fr; }
-  .nav { display: none; }
+
+  /* The hamburger button only appears once the horizontal nav no
+     longer fits — tapping it slides in a real sidebar from the LEFT
+     edge of the screen (see js/nav-toggle.js for the backdrop it
+     injects), rather than a dropdown competing for space in the
+     header itself. */
+  .nav-toggle { display: flex; }
+
+  .nav {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: min(80vw, 320px);
+    max-width: 320px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--bg-raised);
+    border-right: 1px solid var(--border);
+    box-shadow: none;
+    padding: calc(90px + env(safe-area-inset-top, 0px)) 22px calc(24px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-100%);
+    transition: transform .25s var(--ease);
+    z-index: 1000;
+    overflow-y: auto;
+  }
+  .nav.open { transform: translateX(0); box-shadow: 16px 0 40px rgba(0,0,0,.18); }
+  .nav a {
+    padding: 16px 4px;
+    border-radius: 0;
+    font-size: 16.5px;
+  }
+  .nav a + a { border-top: 1px solid var(--border); }
+  .nav a:hover, .nav a:active { background: var(--accent-soft); text-decoration: none; }
+  .nav a.active { color: var(--accent); }
+
+  /* Dimmed backdrop behind the sidebar — injected by nav-toggle.js,
+     not present in the HTML. Tapping it closes the sidebar. */
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    z-index: 900;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s var(--ease);
+  }
+  .nav-backdrop.open { opacity: 1; pointer-events: auto; }
+
+  /* Header layout on mobile: hamburger stays on the left where it was
+     in the DOM, the lang toggle stays on the right, and the logo is
+     pulled out of the flex flow entirely and centered absolutely —
+     that's what actually guarantees it lands in the middle regardless
+     of how wide the hamburger button vs. the lang toggle are (plain
+     flexbox space-between only "looks" centered by coincidence when
+     the flanking elements happen to be similar widths, which they
+     aren't here). */
+  /* Header layout on mobile: a real 3-column grid (hamburger | logo |
+     lang toggle) with the two side columns pinned to the same fixed
+     width — that's what guarantees the logo lands in the true visual
+     center regardless of how wide the hamburger button vs. the lang
+     toggle actually are, and is more robust than trying to center an
+     absolutely-positioned element relative to a header whose own
+     height depends on its remaining flex children. Also pads for the
+     notch/Dynamic Island so nothing in the header renders underneath
+     it inside the native app. */
+  .site-header {
+    display: grid;
+    grid-template-columns: 116px 1fr 116px;
+    align-items: center;
+    position: relative;
+    padding-top: calc(22px + env(safe-area-inset-top, 0px));
+  }
+  .site-header .nav-toggle { grid-column: 1; grid-row: 1; justify-self: start; }
+  .site-header .logo { grid-column: 2; grid-row: 1; justify-self: center; }
+  .site-header .lang-toggle { grid-column: 3; grid-row: 1; justify-self: end; }
+
+  /* Bigger touch targets on mobile — several controls were sized for
+     mouse pointers (small padding, small font) and end up under
+     Apple's ~44pt minimum tap-target guidance on an actual phone
+     screen, making them fiddly to hit accurately with a finger. */
+  .nav-toggle { width: 44px; height: 44px; }
+  .lang-toggle { flex-wrap: nowrap; align-items: center; }
+  .lang-toggle button { padding: 7px 11px; font-size: 13.5px; line-height: 1.2; white-space: nowrap; word-break: keep-all; }
+  .toggle-btn { padding: 13px 12px; font-size: 14.5px; }
+  .audience-tab { padding: 14px 20px; font-size: 15.5px; }
+  .choice-btn { padding: 16px 22px; min-height: 48px; }
+
   .stage { padding: 40px 22px; }
   .settings-row { flex-direction: column; }
 }
@@ -830,15 +951,46 @@ section { padding: 64px 0; }
 .sequence-summary div { display: flex; justify-content: space-between; padding: 4px 0; }
 .sequence-summary div span:first-child { color: var(--text-faint); }
 .sequence-summary div span:last-child { font-weight: 700; color: var(--text); }
-.noise-badge {
-  margin-left: 10px;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+
+/* Native-app feel: a quick double-tap should not zoom the page (it also
+   delays taps on iOS). touch-action: manipulation keeps pinch-zoom with
+   two fingers and normal scrolling, and only removes double-tap zoom. */
+html, body, * {
+  touch-action: manipulation;
 }
-.noise-badge:empty { display: none; }
-.noise-clean { background: #e6f4ea; color: #1e7e34; }
-.noise-low { background: #fff8e1; color: #8a6d00; }
-.noise-moderate { background: #fff0e0; color: #b35c00; }
-.noise-high { background: #fdecea; color: #c0392b; }
+
+/* Never allow sideways panning of the whole page in the app. */
+html, body { overflow-x: hidden; max-width: 100%; }
+
+/* Result cards must never overflow narrow phone screens */
+#metricsGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { #metricsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { #metricsGrid { grid-template-columns: minmax(0, 1fr); } }
+.metric-card { min-width: 0; overflow-wrap: anywhere; }
+
+/* Live Hear start button: simple line microphone icon (inherits text color) */
+#startBtn::before {
+  content: "";
+  display: inline-block;
+  width: 1.15em; height: 1.15em;
+  vertical-align: -0.22em;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='2.5' width='6' height='12' rx='3'/%3E%3Cpath d='M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='2.5' width='6' height='12' rx='3'/%3E%3Cpath d='M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* While listening, the button shows a matching line-style stop icon instead of the mic */
+#startBtn.listening::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='5' width='14' height='14' rx='3'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='5' width='14' height='14' rx='3'/%3E%3C/svg%3E");
+}
+
+/* Sign to Text: line-style camera icon on the Allow Camera button */
+#startCameraBtn[data-i18n="sign.perm.btn"]::before {
+  content: "";
+  display: inline-block;
+  width: 1.15em; height: 1.15em;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='6' width='13' height='12' rx='2.5'/%3E%3Cpath d='M15.5 10.5l6-3.5v10l-6-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='6' width='13' height='12' rx='2.5'/%3E%3Cpath d='M15.5 10.5l6-3.5v10l-6-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
