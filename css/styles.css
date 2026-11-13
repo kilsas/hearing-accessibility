@@ -1028,3 +1028,9 @@ main.wrap p { max-width: 640px; }
 .statement { margin: 56px 0 72px; }
 /* Insights: one chart card per row so the bars have room */
 #insightsGrid, main.wrap .grid-2.insights-grid { grid-template-columns: 1fr; }
+
+/* Inner-page sections: tight, consistent spacing (the 64px default is for the home page) */
+main.wrap section { padding: 0; }
+main.wrap section + section { margin-top: 40px !important; }
+main.wrap section > h2 { margin-bottom: 8px; }
+main.wrap section > p + .btn-primary { margin-top: 6px; }
