@@ -27,11 +27,11 @@
    file and shared-sync.js. */
 
 window.HEAR_FIREBASE_CONFIG = {
-  apiKey: '',
-  authDomain: '',
-  databaseURL: '',
-  projectId: '',
-  storageBucket: '',
-  messagingSenderId: '',
-  appId: ''
+  apiKey: "AIzaSyCox7asALn6krjEJSdkkGPXiG4QxL-Eo-U",
+  authDomain: "hear-shared-signs.firebaseapp.com",
+  databaseURL: "https://hear-shared-signs-default-rtdb.firebaseio.com",
+  projectId: "hear-shared-signs",
+  storageBucket: "hear-shared-signs.firebasestorage.app",
+  messagingSenderId: "239401233756",
+  appId: "1:239401233756:web:012a26135f1425a9076599"
 };
