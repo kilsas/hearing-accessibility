@@ -276,7 +276,7 @@
     var mx = Math.max.apply(null, rms), fl = pct(rms, 0.2) || 0, thr = Math.max(mx * 0.06, fl * 2.5, 0.002);
     var now = rms[rms.length - 1] > thr;
     if (now) { vad.on += 50; vad.off = 0; if (!vad.speaking && vad.on >= 150) vad.speaking = true; }
-    else { vad.off += 50; if (vad.speaking && vad.off >= 350) { vad.speaking = false; vad.on = 0; var r = judge(); vad.cbs.forEach(function (cb) { try { cb(r); } catch (e) {} }); } if (!vad.speaking) vad.on = 0; }
+    else { vad.off += 50; if (vad.speaking && vad.off >= API.pauseMs) { vad.speaking = false; vad.on = 0; var r = judge(); vad.cbs.forEach(function (cb) { try { cb(r); } catch (e) {} }); } if (!vad.speaking) vad.on = 0; }
   }
   function stop() {
     if (vad.timer) { clearInterval(vad.timer); vad.timer = null; } vad.speaking = false; vad.on = vad.off = 0;
@@ -304,6 +304,7 @@
     var t = (text || "").replace(/[\s.?!,~…]+$/, "");
     if (!t) return null;
     var w = t.split(/\s+/).pop();
+    if (/^(아니|아냐)$/.test(w) || /머니$/.test(w)) return null; // "아냐", "아니", "어머니"는 질문 어미가 아니라 단어예요
     if (/니까$/.test(w)) { var p = w.charAt(w.length - 3); return (p && finalOf(p) === 17) ? "-ㅂ니까" : null; } // 합니까(질문) / 오니까(이유)
     if (/니$/.test(w) && w.length >= 2) return "-니";
     if (/냐$/.test(w)) return "-냐";
@@ -325,6 +326,19 @@
     if (/다$/.test(w) && w.length >= 2) return "-다";
     return null;
   }
+  // 문장 중간에 있어도 질문이 확실한 어미 (쉬는 자리를 못 찾았을 때 씀): -냐, -었니/-았니/-했니/-겠니, -ㅂ니까, -나요
+  // "-ㄹ까"(갈까 말까)나 "-으니"(먹었으니)처럼 중간에서 다른 뜻으로 쓰이는 건 빼요.
+  function midQuestionIndexes(words) {
+    var out = [];
+    for (var i = 0; i < words.length - 1; i++) {
+      var w = words[i].replace(/[.?!,]+$/, "");
+      if (/^(아니|아냐)$/.test(w) || /머니$/.test(w)) continue;
+      if (/냐$/.test(w) || /나요$/.test(w)) { out.push(i + 1); continue; }
+      if (/니까$/.test(w)) { var p = w.charAt(w.length - 3); if (p && finalOf(p) === 17) out.push(i + 1); continue; }
+      if (/니$/.test(w) && w.length >= 2) { var b = w.charAt(w.length - 2); if (finalOf(b) === 20) out.push(i + 1); }
+    }
+    return out;
+  }
   // 어미와 음높이를 합쳐서 정해요. 어미가 확실하면 어미로, 아니면 말끝 음높이로.
   function decide(text, r) {
     var st = API.useEndings ? endingStatement(text) : null;
@@ -341,7 +355,7 @@
     return API.addPeriod ? t + "." : t;
   }
 
-  var API = { start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
+  var API = { start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, midQuestionIndexes: midQuestionIndexes, pauseMs: 250, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
               _pitchTrack: pitchTrack, _finalRise: finalRise, _segments: segments };
   global.HEARQ = API;
 })(window);

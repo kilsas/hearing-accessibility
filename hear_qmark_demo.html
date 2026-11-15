@@ -55,7 +55,7 @@
     <div id="interim" class="interim"></div>
   </section>
 
-  <p class="muted">두 문장을 이어 말하면, 중간에 쉰 자리마다 말끝을 재서 그 자리에 ?를 넣어요 (시험 중). 알아 둘 것: 질문 어미(-니, -냐, -까 등)나 평서문 어미(-ㄹ게, -ㅂ니다, -다 등)가 있으면 어미로 정하고, "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰는 어미는 말끝이 올라가는지로 정해요. 그래서 "몇 시에 시작해요?", "누가 왔어요?"처럼 의문사가 있으면서 말끝이 내려가는 질문은 아직 놓칠 수 있어요.</p>
+  <p class="muted">두 문장을 이어 말하면, 중간에 쉰 자리(0.25초 이상)마다 말끝을 재서 그 자리에 ?를 넣어요. 쉬지 않고 붙여 말해도 "-냐", "-었니", "-ㅂ니까", "-나요"처럼 확실한 질문 어미는 잡아요 (시험 중). 알아 둘 것: 질문 어미(-니, -냐, -까 등)나 평서문 어미(-ㄹ게, -ㅂ니다, -다 등)가 있으면 어미로 정하고, "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰는 어미는 말끝이 올라가는지로 정해요. 그래서 "몇 시에 시작해요?", "누가 왔어요?"처럼 의문사가 있으면서 말끝이 내려가는 질문은 아직 놓칠 수 있어요.</p>
 </main>
 
 <script src="hear-question-mark.js"></script>
@@ -78,7 +78,9 @@
   function fmtRise(r) { return r && r.rise != null ? (r.rise >= 0 ? "+" : "") + r.rise.toFixed(1) : "–"; }
   function addLine(text, r, mk) {
     var words = text.split(/\s+/).filter(Boolean), pieces = [], prev = 0;
-    (mk || []).filter(function (m) { return m.n > 0 && m.n < words.length; })
+    mk = (mk || []).slice();
+    HEARQ.midQuestionIndexes(words).forEach(function (n) { if (!mk.some(function (m) { return Math.abs(m.n - n) <= 1; })) mk.push({ n: n, r: null }); });
+    mk.filter(function (m) { return m.n > 0 && m.n < words.length; })
       .sort(function (a, b) { return a.n - b.n; })
       .forEach(function (m) {
         if (m.n <= prev) return;
