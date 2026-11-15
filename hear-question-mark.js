@@ -349,8 +349,20 @@
   var EN_TAGS = /(isn't it|aren't you|aren't they|don't you|doesn't it|didn't you|didn't it|won't you|can't you|wasn't it|weren't you|haven't you|hasn't it)$/;
   var EN_DO_IMPERATIVE = /^(it|this|that|these|those|the|a|an|my|your|his|her|our|their|something|anything|everything)$/; // "Do it now", "Do your homework"는 명령문
   function enWords(text) { return (text || "").toLowerCase().replace(/[.?!,]+/g, " ").trim().split(/\s+/).filter(Boolean); }
+  // 문장 앞의 "okay, so", "well", "oh", "hey" 같은 말은 건너뛰고 봐요 ("Okay, so how was your day?")
+  var EN_LEAD = /^(okay|ok|so|well|um|uh|oh|hey|alright|all|right|and|but|yeah|yes|no|like|anyway|actually|then|also|hi|hello|sorry|now|wait|hmm|listen|look|anyways|honestly|by|the|way|i|mean|you|know)$/;
+  function stripLead(w) {
+    var i = 0;
+    while (i < w.length - 1 && i < 4) {
+      var two = w[i] + " " + (w[i + 1] || "");
+      if (/^(all right|by the|the way|i mean|you know)$/.test(two)) { i += 2; continue; }
+      if (/^(okay|ok|so|well|um|uh|oh|hey|alright|and|but|yeah|yes|no|anyway|anyways|actually|then|also|hi|hello|sorry|wait|hmm|listen|look|honestly|way)$/.test(w[i])) { i++; continue; }
+      break;
+    }
+    return w.slice(i);
+  }
   function englishQuestion(text) {
-    var w = enWords(text);
+    var w = stripLead(enWords(text));
     if (!w.length) return null;
     if (w.length >= 2 && EN_AUX.test(w[0]) && EN_SUBJ.test(w[1]) && !(w[0] === "do" && EN_DO_IMPERATIVE.test(w[1]))) return "어순 (" + w[0] + " " + w[1] + "…)";
     if (EN_WH_CONTR.test(w[0])) return "의문사 (" + w[0] + "…)";
@@ -363,6 +375,9 @@
   function englishCase(text) {
     var t = (text || "").trim();
     t = t.replace(/\bi\b/g, "I").replace(/\bi'(m|ve|ll|d)\b/g, "I'$1");
+    // 문장 앞 "okay", "well", "oh", "hey", "yes", "anyway", "by the way" 뒤에 쉼표 ("Okay, so how was your day?")
+    var m = /^(okay|ok|well|oh|hey|yeah|yes|anyway|actually|alright|all right|hi|hello|sorry|um|uh|by the way)\s+(\S+)/i.exec(t);
+    if (m && !/^(done|said|then|there)$/i.test(m[2]) && t.indexOf(",") !== m[1].length) t = m[1] + "," + t.slice(m[1].length);
     return t.charAt(0).toUpperCase() + t.slice(1);
   }
   function isEnglish() { return /^en/i.test(API.lang || ""); }
