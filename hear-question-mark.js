@@ -282,14 +282,38 @@
     if (!fr) return { rise: null, question: false, reason: "음높이를 못 찾았어요" };
     return { rise: fr.rise, question: fr.rise >= API.threshold, reason: "" };
   }
+  // 문장 끝 어미만 봐도 질문인 게 확실한 경우 (예: 먹었니, 가냐, 하나요, 합니까, 할까, 인가요)
+  // "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰이는 어미는 여기서 정하지 않고 음높이로 정해요.
+  function finalOf(ch) { var c = ch.charCodeAt(0) - 0xAC00; return (c >= 0 && c < 11172) ? c % 28 : -1; }
+  function endingQuestion(text) {
+    var t = (text || "").replace(/[\s.?!,~…]+$/, "");
+    if (!t) return null;
+    var w = t.split(/\s+/).pop();
+    if (/^(아니|아냐)$/.test(w) || /머니$/.test(w)) return null; // "아냐/아니"(=no), "어머니/할머니"는 질문이 아니에요
+    if (/니까$/.test(w)) { var p = w.charAt(w.length - 3); return (p && finalOf(p) === 17) ? "-ㅂ니까" : null; } // 합니까(질문) / 오니까(이유)
+    if (/니$/.test(w) && w.length >= 2) return "-니";
+    if (/냐$/.test(w)) return "-냐";
+    if (/나요$/.test(w)) return "-나요";
+    if (/까요?$/.test(w) && w.length >= 2 && w !== "아까") return "-까";
+    if (/는가요?$/.test(w)) return "-는가";
+    if (/가요?$/.test(w) && w.length >= 2) { var q = w.charAt(w.length - (/요$/.test(w) ? 3 : 2)); if (q && finalOf(q) === 4) return "-ㄴ가"; }
+    return null;
+  }
+  // 어미와 음높이를 합쳐서 정해요. 어미가 확실하면 어미로, 아니면 말끝 음높이로.
+  function decide(text, r) {
+    var e = API.useEndings ? endingQuestion(text) : null;
+    if (e) return { question: true, by: "어미 " + e };
+    if (r && r.question) return { question: true, by: "억양" };
+    return { question: false, by: r && r.rise != null ? "억양" : "" };
+  }
   function punctuate(text, r) {
     var t = (text || "").replace(/\s+$/, "").replace(/[.?!]+$/, "");
     if (!t) return t;
-    if (r && r.question) return t + "?";
+    if (decide(t, r).question) return t + "?";
     return API.addPeriod ? t + "." : t;
   }
 
-  var API = { start: start, stop: stop, wake: wake, status: status, judge: judge, punctuate: punctuate, threshold: 4, addPeriod: false, rawAudio: false,
+  var API = { start: start, stop: stop, wake: wake, status: status, judge: judge, punctuate: punctuate, decide: decide, endingQuestion: endingQuestion, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
               _pitchTrack: pitchTrack, _finalRise: finalRise, _segments: segments };
   global.HEARQ = API;
 })(window);

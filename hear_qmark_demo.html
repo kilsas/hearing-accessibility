@@ -45,6 +45,7 @@
       <input id="thr" type="range" min="0" max="10" step="0.25" value="4">
       <b id="thrVal">4.00</b>
     </div>
+    <label class="muted"><input type="checkbox" id="endings" checked> 질문 어미(-니, -냐, -까, -나요, -ㅂ니까 등)도 보기</label>
     <label class="muted"><input type="checkbox" id="period"> 질문이 아니면 마침표 붙이기</label>
     <label class="muted"><input type="checkbox" id="showRise" checked> 말끝 상승 숫자 보기 (시험용)</label>
   </section>
@@ -54,7 +55,7 @@
     <div id="interim" class="interim"></div>
   </section>
 
-  <p class="muted">알아 둘 것: 지금은 말끝이 올라가는지만 봐요. "밥 먹었어요?" 같은 예/아니오 질문에 맞춰져 있고, "누가 왔어요?"처럼 의문사가 있는 질문은 말끝이 안 올라갈 수 있어서 놓칠 수 있어요.</p>
+  <p class="muted">알아 둘 것: 질문 어미(-니, -냐, -까 등)가 있으면 어미로 정하고, "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰는 어미는 말끝이 올라가는지로 정해요. 그래서 "몇 시에 시작해요?", "누가 왔어요?"처럼 의문사가 있으면서 말끝이 내려가는 질문은 아직 놓칠 수 있어요.</p>
 </main>
 
 <script src="hear-question-mark.js"></script>
@@ -67,19 +68,20 @@
 
   $("thr").addEventListener("input", function () { HEARQ.threshold = parseFloat(this.value); $("thrVal").textContent = HEARQ.threshold.toFixed(2); });
   $("period").addEventListener("change", function () { HEARQ.addPeriod = this.checked; });
+  $("endings").addEventListener("change", function () { HEARQ.useEndings = this.checked; });
 
   function addLine(text, r) {
     var line = document.createElement("div"); line.className = "line";
     var t = document.createElement("span"); t.className = "t";
-    var shown = HEARQ.punctuate(text, r);
-    if (r && r.question) {
+    var shown = HEARQ.punctuate(text, r), d = HEARQ.decide(text, r);
+    if (d.question) {
       t.textContent = shown.slice(0, -1);
       var q = document.createElement("span"); q.className = "q"; q.textContent = "?"; t.appendChild(q);
     } else { t.textContent = shown; }
     line.appendChild(t);
     if ($("showRise").checked) {
       var s = document.createElement("span"); s.className = "r";
-      s.textContent = r && r.rise != null ? (r.rise >= 0 ? "+" : "") + r.rise.toFixed(1) + "반음" : (r && r.reason) || "";
+      s.textContent = (r && r.rise != null ? (r.rise >= 0 ? "+" : "") + r.rise.toFixed(1) + "반음" : (r && r.reason) || "") + (/^어미/.test(d.by) ? " · " + d.by : "");
       line.appendChild(s);
     }
     $("captions").appendChild(line);
