@@ -31,10 +31,14 @@
 <body>
 <main>
   <h1>HEAR 물음표 시험판</h1>
-  <p class="muted"><b>개발 중인 시험판이에요.</b> 한국어 예/아니오 질문만 시험해요. 크롬 데스크톱에서 열어 주세요. 말하면 캡션이 나오고, 말끝 음높이가 기준값보다 많이 올라가면 문장 끝에 <b>?</b>가 붙어요. 음높이 분석은 이 브라우저 안에서 하지만, 음성 인식은 크롬의 음성 인식 서비스(구글 서버)를 사용해요.</p>
+  <p class="muted"><b>개발 중인 시험판이에요.</b> 한국어와 영어를 시험해요. 크롬 데스크톱에서 열어 주세요. 말하면 캡션이 나오고, 말끝 음높이가 기준값보다 많이 올라가면 문장 끝에 <b>?</b>가 붙어요. 음높이 분석은 이 브라우저 안에서 하지만, 음성 인식은 크롬의 음성 인식 서비스(구글 서버)를 사용해요.</p>
 
   <section class="panel">
     <div class="row">
+      <select id="lang" aria-label="언어" style="font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+        <option value="ko-KR">한국어</option>
+        <option value="en-US">English (US)</option>
+      </select>
       <button id="btn">듣기 시작</button>
       <span id="status" class="muted">아직 시작하지 않았어요.</span>
     </div>
@@ -47,6 +51,11 @@
       <input id="thr" type="range" min="0" max="10" step="0.25" value="4">
       <b id="thrVal">4.00</b>
     </div>
+    <div class="row">
+      <label for="pause" class="muted">문장 사이 쉬는 시간 기준(초)</label>
+      <input id="pause" type="range" min="0.1" max="0.5" step="0.05" value="0.15">
+      <b id="pauseVal">0.15</b>
+    </div>
     <label class="muted"><input type="checkbox" id="endings" checked> 어미도 보기 (질문 어미 -니, -냐, -까, -나요, -ㅂ니까 / 평서문 어미 -ㄹ게, -ㅂ니다, -다, -구나)</label>
     <label class="muted"><input type="checkbox" id="period"> 질문이 아니면 마침표 붙이기</label>
     <label class="muted"><input type="checkbox" id="showRise" checked> 말끝 상승 숫자 보기 (시험용)</label>
@@ -57,7 +66,8 @@
     <div id="interim" class="interim"></div>
   </section>
 
-  <p class="muted">두 문장을 이어 말하면, 중간에 쉰 자리(0.25초 이상)마다 말끝을 재서 그 자리에 ?를 넣어요. 쉬지 않고 붙여 말해도 "-냐", "-었니", "-ㅂ니까", "-나요"처럼 확실한 질문 어미는 잡아요 (시험 중). 알아 둘 것: 질문 어미(-니, -냐, -까 등)나 평서문 어미(-ㄹ게, -ㅂ니다, -다 등)가 있으면 어미로 정하고, "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰는 어미는 말끝이 올라가는지로 정해요. 그래서 "몇 시에 시작해요?", "누가 왔어요?"처럼 의문사가 있으면서 말끝이 내려가는 질문은 아직 놓칠 수 있어요.</p>
+  <p class="muted">영어: "Do you…", "Is it…", "What are…", "How many…", "…isn't it"처럼 어순으로 질문인 게 확실하면 단어로 정하고, "You ate?"처럼 어순은 평서문인데 억양으로 묻는 질문은 말끝 음높이로 정해요. 문장 첫 글자와 "I"는 대문자로 바꾸고, 질문이 아니면 마침표를 붙여요. 영어 기준값은 아직 한국어와 같은 값(4반음)을 쓰고 있어서 따로 확인이 필요해요.</p>
+  <p class="muted">두 문장을 이어 말하면, 중간에 쉰 자리(기본 0.15초 이상, 슬라이더로 조절)마다 말끝을 재서 그 자리에 ?를 넣어요. 쉬지 않고 붙여 말해도 "-냐", "-었니", "-ㅂ니까", "-나요"처럼 확실한 질문 어미는 잡아요 (시험 중). 알아 둘 것: 질문 어미(-니, -냐, -까 등)나 평서문 어미(-ㄹ게, -ㅂ니다, -다 등)가 있으면 어미로 정하고, "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰는 어미는 말끝이 올라가는지로 정해요. 그래서 "몇 시에 시작해요?", "누가 왔어요?"처럼 의문사가 있으면서 말끝이 내려가는 질문은 아직 놓칠 수 있어요.</p>
 </main>
 
 <script src="hear-question-mark.js"></script>
@@ -71,11 +81,16 @@
   $("thr").addEventListener("input", function () { HEARQ.threshold = parseFloat(this.value); $("thrVal").textContent = HEARQ.threshold.toFixed(2); });
   $("period").addEventListener("change", function () { HEARQ.addPeriod = this.checked; });
   $("endings").addEventListener("change", function () { HEARQ.useEndings = this.checked; });
+  $("pause").addEventListener("input", function () { HEARQ.pauseMs = Math.round(parseFloat(this.value) * 1000); $("pauseVal").textContent = parseFloat(this.value).toFixed(2); });
+  $("lang").addEventListener("change", function () {
+    HEARQ.lang = this.value;
+    if (running) { stopAll(); $("status").textContent = "언어를 바꿨어요. 다시 듣기 시작을 눌러 주세요."; }
+  });
 
   // 말하다 쉰 자리(marks)마다 그때까지의 단어 수와 말끝 상승을 기억해 뒀다가, 최종 문장에 ?를 끼워 넣어요
   var interimWords = 0, marks = [];
   HEARQ.onPause(function (r) {
-    setTimeout(function () { if (interimWords > 0) marks.push({ n: interimWords, r: r }); }, 300);
+    setTimeout(function () { if (interimWords > 0) marks.push({ n: interimWords, r: r }); }, 250);
   });
   // 시험용: 마지막 말 조각의 음높이 선을 작게 그리고, 그 소리를 WAV로 저장할 수 있게 해요
   function drawSpark(cv, r) {
@@ -100,12 +115,15 @@
   function addLine(text, r, mk) {
     var words = text.split(/\s+/).filter(Boolean), pieces = [], prev = 0;
     mk = (mk || []).slice();
-    HEARQ.midQuestionIndexes(words).forEach(function (n) { if (!mk.some(function (m) { return Math.abs(m.n - n) <= 1; })) mk.push({ n: n, r: null }); });
+    var isEn = /^en/.test(HEARQ.lang);
+    if (!isEn) HEARQ.midQuestionIndexes(words).forEach(function (n) { if (!mk.some(function (m) { return Math.abs(m.n - n) <= 1; })) mk.push({ n: n, r: null }); });
     mk.filter(function (m) { return m.n > 0 && m.n < words.length; })
       .sort(function (a, b) { return a.n - b.n; })
       .forEach(function (m) {
         if (m.n <= prev) return;
-        var chunk = words.slice(prev, m.n).join(" "), d = HEARQ.decide(chunk, m.r);
+        var chunk = words.slice(prev, m.n).join(" ");
+        if (!HEARQ.looksFinal(chunk)) return; // 조사나 연결 어미에서 쉰 거면 문장 중간이라 넘어가요
+        var d = HEARQ.decide(chunk, m.r);
         pieces.push({ text: chunk, d: d, r: m.r }); prev = m.n;
       });
     var last = words.slice(prev).join(" ");
@@ -113,16 +131,16 @@
     var line = document.createElement("div"); line.className = "line";
     var t = document.createElement("span"); t.className = "t";
     pieces.forEach(function (p, i) {
-      t.appendChild(document.createTextNode((i ? " " : "") + p.text));
+      t.appendChild(document.createTextNode((i ? " " : "") + (isEn ? HEARQ.englishCase(p.text) : p.text)));
       if (p.d.question) { var q = document.createElement("span"); q.className = "q"; q.textContent = "?"; t.appendChild(q); }
-      else if (HEARQ.addPeriod) t.appendChild(document.createTextNode("."));
+      else if (HEARQ.addPeriod || isEn) t.appendChild(document.createTextNode("."));
     });
     line.appendChild(t);
     if ($("showRise").checked) {
       var s = document.createElement("span"); s.className = "r";
       s.textContent = pieces.map(function (p) {
         var lab = p.r && p.r.rise != null ? fmtRise(p.r) + "반음" : ((p.r && p.r.reason) || "");
-        return lab + (/^어미/.test(p.d.by) ? " · " + p.d.by : "");
+        return lab + (p.d.by && p.d.by !== "억양" ? " · " + p.d.by : "");
       }).join(" / ");
       line.appendChild(s);
       var cv = document.createElement("canvas"); cv.className = "spark"; cv.width = 240; cv.height = 56; line.appendChild(cv); drawSpark(cv, r);
@@ -143,7 +161,8 @@
     if (!Rec) { $("status").textContent = "이 브라우저는 음성인식을 지원하지 않아요. 크롬에서 열어 주세요."; return; }
     try { await HEARQ.start(); }
     catch (e) { $("status").textContent = "마이크를 쓸 수 없어요: " + e.message; return; }
-    rec = new Rec(); rec.lang = "ko-KR"; rec.continuous = true; rec.interimResults = true;
+    HEARQ.lang = $("lang").value;
+    rec = new Rec(); rec.lang = HEARQ.lang; rec.continuous = true; rec.interimResults = true;
     rec.onresult = function (ev) {
       var interim = "";
       for (var i = ev.resultIndex; i < ev.results.length; i++) {

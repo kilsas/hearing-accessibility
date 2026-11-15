@@ -339,8 +339,58 @@
     }
     return out;
   }
+  // ---------- 영어 ----------
+  // 영어는 어순으로 질문인 게 확실한 경우(Do you…, Is it…, What are…, …isn't it)는 단어로 정하고,
+  // "You're coming?"처럼 어순은 평서문인데 억양으로만 묻는 질문은 음높이로 정해요.
+  var EN_AUX = /^(do|does|did|is|are|was|were|am|can|could|will|would|should|shall|may|might|must|have|has|had|isn't|aren't|wasn't|weren't|don't|doesn't|didn't|can't|couldn't|won't|wouldn't|shouldn't|haven't|hasn't|hadn't)$/;
+  var EN_SUBJ = /^(i|you|we|they|he|she|it|this|that|these|those|there|the|a|an|my|your|his|her|our|their|its|anyone|anybody|someone|somebody|everyone|everybody|anything|something|everything)$/;
+  var EN_WH = /^(what|where|when|why|who|whom|whose|which|how)$/;
+  var EN_WH_CONTR = /^(what's|where's|when's|why's|who's|how's|what're|where're|who're|how're)$/;
+  var EN_TAGS = /(isn't it|aren't you|aren't they|don't you|doesn't it|didn't you|didn't it|won't you|can't you|wasn't it|weren't you|haven't you|hasn't it)$/;
+  var EN_DO_IMPERATIVE = /^(it|this|that|these|those|the|a|an|my|your|his|her|our|their|something|anything|everything)$/; // "Do it now", "Do your homework"는 명령문
+  function enWords(text) { return (text || "").toLowerCase().replace(/[.?!,]+/g, " ").trim().split(/\s+/).filter(Boolean); }
+  function englishQuestion(text) {
+    var w = enWords(text);
+    if (!w.length) return null;
+    if (w.length >= 2 && EN_AUX.test(w[0]) && EN_SUBJ.test(w[1]) && !(w[0] === "do" && EN_DO_IMPERATIVE.test(w[1]))) return "어순 (" + w[0] + " " + w[1] + "…)";
+    if (EN_WH_CONTR.test(w[0])) return "의문사 (" + w[0] + "…)";
+    if (w.length >= 2 && EN_WH.test(w[0]) && (EN_AUX.test(w[1]) || /^(many|much|long|often|far|old|about|else)$/.test(w[1]))) return "의문사 (" + w[0] + " " + w[1] + "…)";
+    if (w.length >= 3 && EN_WH.test(w[0]) && EN_AUX.test(w[2])) return "의문사 (" + w.slice(0, 3).join(" ") + "…)"; // what time is it, which one is
+    var tail = w.slice(-2).join(" ");
+    if (w.length >= 4 && EN_TAGS.test(tail) && !/^(turn|go|on|the|to)$/.test(w[w.length - 2])) return "꼬리 질문 (…" + tail + ")";
+    return null;
+  }
+  function englishCase(text) {
+    var t = (text || "").trim();
+    t = t.replace(/\bi\b/g, "I").replace(/\bi'(m|ve|ll|d)\b/g, "I'$1");
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  function isEnglish() { return /^en/i.test(API.lang || ""); }
+
+  // 짧게 쉰 자리가 문장 끝인지 확인해요. 조사(은/는/이/가…)나 연결 어미(-고, -서, -는데…)로 끝나면 문장 중간이라 ?를 넣지 않아요.
+  // (한국어는 "저는~"처럼 문장 중간에서도 음이 올라가는 경우가 많아서 필요해요)
+  var KO_NONFINAL = /(은|는|이|가|을|를|에|에서|에게|한테|께|도|만|랑|이랑|하고|의|로|으로|와|과|부터|까지|처럼|보다|고|서|면|으면|는데|은데|ㄴ데|지만|니까|며|으며|려고|러|면서|도록|게|든지|거나)$/;
+  var EN_NONFINAL = /^(and|but|or|so|because|the|a|an|to|of|in|on|at|for|with|from|my|your|his|her|our|their|is|are|was|were|am|if|that|which|who|when|while|i|you|we|they|he|she|it)$/;
+  function looksFinal(chunk) {
+    var w = (chunk || "").trim().split(/\s+/).pop() || "";
+    w = w.replace(/[.?!,]+$/, "");
+    if (!w) return false;
+    if (isEnglish()) return !EN_NONFINAL.test(w.toLowerCase());
+    if (endingStatement(w) && /게요?$/.test(w)) return true; // 연락할게(요)는 문장 끝
+    if (endingQuestion(w)) return true; // 했니, 합니까, 가냐는 문장 끝 (조사 목록에 걸려도)
+    if (w === "가") return true; // "학교 가"처럼 동사 "가"로 끝나는 말
+    if (/^(그런데|근데|그래서|그리고|그러니까|하지만|그러면|그럼|아니면|어제|오늘|내일|지금|아까|나중에|그냥|진짜|정말|아직|벌써)$/.test(w)) return false; // 접속사·부사에서 쉰 건 문장 중간
+    return !KO_NONFINAL.test(w);
+  }
+
   // 어미와 음높이를 합쳐서 정해요. 어미가 확실하면 어미로, 아니면 말끝 음높이로.
   function decide(text, r) {
+    if (isEnglish()) {
+      var en = API.useEndings ? englishQuestion(text) : null;
+      if (en) return { question: true, by: en };
+      if (r && r.question) return { question: true, by: "억양" };
+      return { question: false, by: r && r.rise != null ? "억양" : "" };
+    }
     var st = API.useEndings ? endingStatement(text) : null;
     if (st) return { question: false, by: "어미 " + st };
     var e = API.useEndings ? endingQuestion(text) : null;
@@ -351,11 +401,12 @@
   function punctuate(text, r) {
     var t = (text || "").replace(/\s+$/, "").replace(/[.?!]+$/, "");
     if (!t) return t;
+    if (isEnglish()) t = englishCase(t);
     if (decide(t, r).question) return t + "?";
-    return API.addPeriod ? t + "." : t;
+    return (API.addPeriod || isEnglish()) ? t + "." : t;
   }
 
-  var API = { start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, midQuestionIndexes: midQuestionIndexes, pauseMs: 250, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
+  var API = { start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, looksFinal: looksFinal, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
               _pitchTrack: pitchTrack, _finalRise: finalRise, _segments: segments };
   global.HEARQ = API;
 })(window);
