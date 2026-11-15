@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HEAR 물음표 시험판</title>
+<style>
+  :root { --bg:#f3f5f4; --surface:#fff; --ink:#17201c; --muted:#5b6862; --line:#d9e0dc; --accent:#0f6e5a; --q:#c2410c; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f1412; --surface:#161d1a; --ink:#e4ebe7; --muted:#97a69f; --line:#2a3530; --accent:#4fc4a6; --q:#fb923c; } }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:24px 16px 48px; background:var(--bg); color:var(--ink); font-family:"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif; line-height:1.6; }
+  main { max-width:760px; margin:0 auto; display:grid; gap:16px; }
+  h1 { font-size:1.4rem; margin:0; }
+  p { margin:0; }
+  .muted { color:var(--muted); font-size:.9rem; }
+  .panel { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px; display:grid; gap:12px; }
+  .row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+  button { font:inherit; font-weight:600; padding:10px 18px; border-radius:10px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; }
+  button.off { background:transparent; color:var(--accent); }
+  #captions { min-height:240px; display:grid; gap:8px; align-content:start; font-size:1.35rem; }
+  .line { display:flex; gap:10px; align-items:baseline; }
+  .line .t { flex:1; }
+  .line .q { color:var(--q); font-weight:800; }
+  .line .r { font-size:.8rem; color:var(--muted); font-family:ui-monospace,Menlo,monospace; white-space:nowrap; }
+  .interim { color:var(--muted); }
+  input[type=range] { flex:1; min-width:200px; accent-color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>HEAR 물음표 시험판</h1>
+  <p class="muted"><b>개발 중인 시험판이에요.</b> 한국어 예/아니오 질문만 시험해요. 크롬 데스크톱에서 열어 주세요. 말하면 캡션이 나오고, 말끝 음높이가 기준값보다 많이 올라가면 문장 끝에 <b>?</b>가 붙어요. 음높이 분석은 이 브라우저 안에서 하지만, 음성 인식은 크롬의 음성 인식 서비스(구글 서버)를 사용해요.</p>
+
+  <section class="panel">
+    <div class="row">
+      <button id="btn">듣기 시작</button>
+      <span id="status" class="muted">아직 시작하지 않았어요.</span>
+    </div>
+    <div class="row">
+      <label for="thr" class="muted">기준값(반음)</label>
+      <input id="thr" type="range" min="0" max="10" step="0.25" value="4">
+      <b id="thrVal">4.00</b>
+    </div>
+    <label class="muted"><input type="checkbox" id="period"> 질문이 아니면 마침표 붙이기</label>
+    <label class="muted"><input type="checkbox" id="showRise" checked> 말끝 상승 숫자 보기 (시험용)</label>
+  </section>
+
+  <section class="panel">
+    <div id="captions"></div>
+    <div id="interim" class="interim"></div>
+  </section>
+
+  <p class="muted">알아 둘 것: 지금은 말끝이 올라가는지만 봐요. "밥 먹었어요?" 같은 예/아니오 질문에 맞춰져 있고, "누가 왔어요?"처럼 의문사가 있는 질문은 말끝이 안 올라갈 수 있어서 놓칠 수 있어요.</p>
+</main>
+
+<script src="hear-question-mark.js"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var rec = null, running = false;
+
+  $("thr").addEventListener("input", function () { HEARQ.threshold = parseFloat(this.value); $("thrVal").textContent = HEARQ.threshold.toFixed(2); });
+  $("period").addEventListener("change", function () { HEARQ.addPeriod = this.checked; });
+
+  function addLine(text, r) {
+    var line = document.createElement("div"); line.className = "line";
+    var t = document.createElement("span"); t.className = "t";
+    var shown = HEARQ.punctuate(text, r);
+    if (r && r.question) {
+      t.textContent = shown.slice(0, -1);
+      var q = document.createElement("span"); q.className = "q"; q.textContent = "?"; t.appendChild(q);
+    } else { t.textContent = shown; }
+    line.appendChild(t);
+    if ($("showRise").checked) {
+      var s = document.createElement("span"); s.className = "r";
+      s.textContent = r && r.rise != null ? (r.rise >= 0 ? "+" : "") + r.rise.toFixed(1) + "반음" : (r && r.reason) || "";
+      line.appendChild(s);
+    }
+    $("captions").appendChild(line);
+    while ($("captions").children.length > 12) $("captions").removeChild($("captions").firstChild);
+  }
+
+  async function startAll() {
+    if (!Rec) { $("status").textContent = "이 브라우저는 음성인식을 지원하지 않아요. 크롬에서 열어 주세요."; return; }
+    try { await HEARQ.start(); }
+    catch (e) { $("status").textContent = "마이크를 쓸 수 없어요: " + e.message; return; }
+    rec = new Rec(); rec.lang = "ko-KR"; rec.continuous = true; rec.interimResults = true;
+    rec.onresult = function (ev) {
+      var interim = "";
+      for (var i = ev.resultIndex; i < ev.results.length; i++) {
+        var txt = ev.results[i][0].transcript.trim();
+        if (ev.results[i].isFinal) {
+          // 최종 결과가 나오면 방금 끝난 말의 말끝 음높이를 재요
+          (function (finalText) { setTimeout(function () { addLine(finalText, HEARQ.judge()); }, 150); })(txt);
+        } else { interim += txt + " "; }
+      }
+      $("interim").textContent = interim;
+    };
+    rec.onerror = function (e) { $("status").textContent = "음성인식 오류: " + e.error; };
+    rec.onend = function () { if (running) { try { rec.start(); } catch (e) {} } };
+    rec.start(); running = true;
+    $("btn").textContent = "멈추기"; $("btn").classList.add("off");
+    $("status").textContent = "듣는 중이에요. 한 문장씩 말해 보세요.";
+  }
+  function stopAll() {
+    running = false; if (rec) rec.stop(); HEARQ.stop();
+    $("btn").textContent = "듣기 시작"; $("btn").classList.remove("off");
+    $("status").textContent = "멈췄어요."; $("interim").textContent = "";
+  }
+  $("btn").addEventListener("click", function () { if (running) stopAll(); else startAll(); });
+})();
+</script>
+</body>
+</html>
