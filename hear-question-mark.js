@@ -185,9 +185,11 @@
   var ring = new Float32Array(Math.round(SR * KEEP)), wpos = 0, filled = 0;
   var ctx = null, stream = null, node = null, src = null;
 
+  var total = 0, lastChunk = 0, events = [];
   function push(buf) {
     for (var i = 0; i < buf.length; i++) { ring[wpos] = buf[i]; wpos = (wpos + 1) % ring.length; }
     filled = Math.min(ring.length, filled + buf.length);
+    total += buf.length; lastChunk = Date.now();
   }
   function lastSeconds(sec) {
     var n = Math.min(filled, Math.round(sec * SR)), out = new Float32Array(n);
@@ -195,49 +197,82 @@
     for (var i = 0; i < n; i++) out[i] = ring[(start + i) % ring.length];
     return out;
   }
+  function note(msg) { events.push(new Date().toLocaleTimeString() + " " + msg); if (events.length > 20) events.shift(); }
 
   // 마이크 소리를 받는 부분: AudioWorklet을 쓰고, 안 되는 브라우저에서만 예전 방식(ScriptProcessor)으로 받아요
   var WORKLET = "class P extends AudioWorkletProcessor{process(i){var c=i[0]&&i[0][0];if(c)this.port.postMessage(c.slice(0));return true;}}registerProcessor('hearq-tap',P);";
-  function onChunk(x, ratio) {
+  var workletReady = null, ratio = 1, mute = null;
+  function onChunk(x) {
     if (ratio === 1) { push(x); return; }
     var n = Math.floor(x.length / ratio), y = new Float32Array(n);
     for (var i = 0; i < n; i++) { var a = Math.floor(i * ratio), b = Math.floor((i + 1) * ratio), s = 0; for (var k = a; k < b; k++) s += x[k]; y[i] = s / (b - a); }
     push(y);
   }
+  // 마이크를 (다시) 열어서 분석에 연결해요. 음성 인식이 마이크를 바꿔 잡아서 끊기면 자동으로 다시 열어요.
+  async function attachMic() {
+    var constraints = API.rawAudio ? { audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } } : { audio: true };
+    var s = await navigator.mediaDevices.getUserMedia(constraints);
+    if (src) { try { src.disconnect(); } catch (e) {} }
+    if (stream && stream !== s) { stream.getTracks().forEach(function (t) { t.onended = null; t.stop(); }); }
+    stream = s;
+    var tr = stream.getAudioTracks()[0];
+    tr.onended = function () { note("마이크 연결이 끊겨서 다시 여는 중"); if (ctx) attachMic().catch(function (e) { note("다시 열기 실패: " + e.message); }); };
+    tr.onmute = function () { note("마이크 소리가 잠깐 멈춤"); };
+    tr.onunmute = function () { note("마이크 소리 다시 들어옴"); };
+    src = ctx.createMediaStreamSource(stream);
+    src.connect(node);
+    note("마이크 연결됨");
+  }
   async function start() {
-    if (ctx) return true;
-    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    if (ctx) { if (ctx.state !== "running") ctx.resume(); return true; }
+    // 클릭 직후에 오디오를 먼저 만들고 켜야 크롬이 막지 않아요 (await 전에)
     try { ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SR }); }
     catch (e) { ctx = new (window.AudioContext || window.webkitAudioContext)(); }
-    var ratio = ctx.sampleRate / SR;
-    src = ctx.createMediaStreamSource(stream);
-    var mute = ctx.createGain(); mute.gain.value = 0;
+    var resumed = ctx.resume();
+    ratio = ctx.sampleRate / SR;
+    mute = ctx.createGain(); mute.gain.value = 0; mute.connect(ctx.destination);
     var usedWorklet = false;
     if (ctx.audioWorklet && window.AudioWorkletNode) {
       try {
         var url = URL.createObjectURL(new Blob([WORKLET], { type: "application/javascript" }));
         await ctx.audioWorklet.addModule(url);
         node = new AudioWorkletNode(ctx, "hearq-tap");
-        node.port.onmessage = function (e) { onChunk(e.data, ratio); };
+        node.port.onmessage = function (e) { onChunk(e.data); };
         usedWorklet = true;
       } catch (e) { node = null; }
     }
     if (!usedWorklet) {
       node = ctx.createScriptProcessor(2048, 1, 1);
-      node.onaudioprocess = function (e) { onChunk(e.inputBuffer.getChannelData(0), ratio); };
+      node.onaudioprocess = function (e) { onChunk(e.inputBuffer.getChannelData(0)); };
     }
-    src.connect(node); node.connect(mute); mute.connect(ctx.destination);
-    if (ctx.state === "suspended") await ctx.resume();
+    node.connect(mute);
+    await attachMic();
+    try { await Promise.race([resumed, new Promise(function (r) { setTimeout(r, 1500); })]); } catch (e) {}
     API.mode = usedWorklet ? "worklet" : "scriptprocessor";
     return true;
   }
+  // 버튼 클릭 안에서 부르면 멈춘 분석을 다시 켜요
+  function wake() {
+    if (!ctx) return start();
+    ctx.resume();
+    var tr = stream && stream.getAudioTracks()[0];
+    if (!tr || tr.readyState === "ended") return attachMic();
+    return Promise.resolve(true);
+  }
+  function status() {
+    var tr = stream && stream.getAudioTracks()[0];
+    return { on: !!ctx, ctx: ctx ? ctx.state : "없음", seconds: total / SR, silentFor: lastChunk ? (Date.now() - lastChunk) / 1000 : null,
+             track: tr ? tr.readyState : "없음", muted: tr ? tr.muted : null, mode: API.mode, events: events.slice() };
+  }
   function stop() {
-    try { if (node) node.disconnect(); if (src) src.disconnect(); if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); if (ctx) ctx.close(); } catch (e) {}
-    ctx = stream = node = src = null; wpos = 0; filled = 0;
+    try { if (node) node.disconnect(); if (src) src.disconnect(); if (stream) stream.getTracks().forEach(function (t) { t.onended = null; t.stop(); }); if (ctx) ctx.close(); } catch (e) {}
+    ctx = stream = node = src = null; wpos = 0; filled = 0; total = 0; lastChunk = 0;
   }
 
   // 마지막 3초에서 가장 최근에 끝난 말 조각을 찾아 말끝 상승을 재요
   function judge() {
+    if (!ctx) return { rise: null, question: false, reason: "분석이 꺼져 있어요" };
+    if (!lastChunk || Date.now() - lastChunk > 1000) return { rise: null, question: false, reason: "마이크 소리가 안 들어와요 (" + (ctx ? ctx.state : "") + ")" };
     var x = lastSeconds(3.0);
     if (x.length < SR * 0.5) return { rise: null, question: false, reason: "소리가 너무 짧아요" };
     var segs = segments(x, SR);
@@ -254,7 +289,7 @@
     return API.addPeriod ? t + "." : t;
   }
 
-  var API = { start: start, stop: stop, judge: judge, punctuate: punctuate, threshold: 4, addPeriod: false,
+  var API = { start: start, stop: stop, wake: wake, status: status, judge: judge, punctuate: punctuate, threshold: 4, addPeriod: false, rawAudio: false,
               _pitchTrack: pitchTrack, _finalRise: finalRise, _segments: segments };
   global.HEARQ = API;
 })(window);

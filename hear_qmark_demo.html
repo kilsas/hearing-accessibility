@@ -37,6 +37,10 @@
       <span id="status" class="muted">아직 시작하지 않았어요.</span>
     </div>
     <div class="row">
+      <span id="mic" class="muted">음높이 분석: 꺼짐</span>
+      <button id="wake" class="off" hidden>분석 다시 켜기</button>
+    </div>
+    <div class="row">
       <label for="thr" class="muted">기준값(반음)</label>
       <input id="thr" type="range" min="0" max="10" step="0.25" value="4">
       <b id="thrVal">4.00</b>
@@ -110,6 +114,14 @@
     $("status").textContent = "멈췄어요."; $("interim").textContent = "";
   }
   $("btn").addEventListener("click", function () { if (running) stopAll(); else startAll(); });
+  $("wake").addEventListener("click", function () { HEARQ.wake(); });
+  setInterval(function () {
+    var st = HEARQ.status();
+    if (!st.on) { $("mic").textContent = "음높이 분석: 꺼짐"; $("wake").hidden = true; return; }
+    var ok = st.ctx === "running" && st.silentFor != null && st.silentFor < 1;
+    $("mic").textContent = "음높이 분석: " + (ok ? "소리 받는 중" : "멈춤") + " · 받은 소리 " + st.seconds.toFixed(0) + "초 · 오디오 " + st.ctx + " · 마이크 " + st.track + (st.muted ? "(소리 없음)" : "");
+    $("wake").hidden = ok;
+  }, 500);
 })();
 </script>
 </body>
