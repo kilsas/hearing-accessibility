@@ -292,10 +292,10 @@
     if (x.length < SR * 0.5) return { rise: null, question: false, reason: "소리가 너무 짧아요" };
     var segs = segments(x, SR);
     if (!segs.length) return { rise: null, question: false, reason: "말소리를 못 찾았어요" };
-    var sg = segs[segs.length - 1];
-    var pt = pitchTrack(x.subarray(sg[0], sg[1]), SR), fr = finalRise(pt.st, pt.hop);
-    if (!fr) return { rise: null, question: false, reason: "음높이를 못 찾았어요" };
-    return { rise: fr.rise, question: fr.rise >= API.threshold, reason: "" };
+    var sg = segs[segs.length - 1], seg = x.slice(sg[0], sg[1]);
+    var pt = pitchTrack(seg, SR), fr = finalRise(pt.st, pt.hop);
+    if (!fr) return { rise: null, question: false, reason: "음높이를 못 찾았어요", audio: seg, st: pt.st };
+    return { rise: fr.rise, question: fr.rise >= API.threshold, reason: "", audio: seg, st: pt.st, w0: fr.w0, last: fr.last };
   }
   // 문장 끝 어미만 봐도 질문인 게 확실한 경우 (예: 먹었니, 가냐, 하나요, 합니까, 할까, 인가요)
   // "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰이는 어미는 여기서 정하지 않고 음높이로 정해요.

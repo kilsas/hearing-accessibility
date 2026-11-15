@@ -23,6 +23,8 @@
   .line .q { color:var(--q); font-weight:800; }
   .line .r { font-size:.8rem; color:var(--muted); font-family:ui-monospace,Menlo,monospace; white-space:nowrap; }
   .interim { color:var(--muted); }
+  canvas.spark { width:120px; height:28px; flex:none; }
+  .save { font-size:.75rem; padding:3px 8px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--muted); cursor:pointer; font-weight:500; }
   input[type=range] { flex:1; min-width:200px; accent-color:var(--accent); }
 </style>
 </head>
@@ -75,6 +77,25 @@
   HEARQ.onPause(function (r) {
     setTimeout(function () { if (interimWords > 0) marks.push({ n: interimWords, r: r }); }, 300);
   });
+  // 시험용: 마지막 말 조각의 음높이 선을 작게 그리고, 그 소리를 WAV로 저장할 수 있게 해요
+  function drawSpark(cv, r) {
+    var g = cv.getContext("2d"), W = cv.width, H = cv.height; g.clearRect(0, 0, W, H);
+    if (!r || !r.st || !r.st.length) return;
+    var st = r.st, n = st.length, lo = -8, hi = 16, css = getComputedStyle(document.documentElement);
+    var y = function (v) { return H - (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo) * H; };
+    if (r.w0 != null) { g.fillStyle = "rgba(127,127,127,.18)"; g.fillRect(r.w0 / n * W, 0, (r.last - r.w0) / n * W, H); }
+    g.strokeStyle = r.question ? css.getPropertyValue("--q") : css.getPropertyValue("--accent"); g.lineWidth = 2; g.beginPath();
+    var pen = false; for (var i = 0; i < n; i++) { var v = st[i]; if (v == null) { pen = false; continue; } var X = i / n * W; if (!pen) { g.moveTo(X, y(v)); pen = true; } else g.lineTo(X, y(v)); }
+    g.stroke();
+  }
+  function wavBlob(x, sr) {
+    var buf = new ArrayBuffer(44 + x.length * 2), v = new DataView(buf), w = function (o, s) { for (var i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, "RIFF"); v.setUint32(4, 36 + x.length * 2, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, x.length * 2, true);
+    for (var i = 0; i < x.length; i++) { var s = Math.max(-1, Math.min(1, x[i])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+    return new Blob([buf], { type: "audio/wav" });
+  }
+  var saveNo = 0;
   function fmtRise(r) { return r && r.rise != null ? (r.rise >= 0 ? "+" : "") + r.rise.toFixed(1) : "–"; }
   function addLine(text, r, mk) {
     var words = text.split(/\s+/).filter(Boolean), pieces = [], prev = 0;
@@ -104,6 +125,15 @@
         return lab + (/^어미/.test(p.d.by) ? " · " + p.d.by : "");
       }).join(" / ");
       line.appendChild(s);
+      var cv = document.createElement("canvas"); cv.className = "spark"; cv.width = 240; cv.height = 56; line.appendChild(cv); drawSpark(cv, r);
+      if (r && r.audio) {
+        var b = document.createElement("button"); b.className = "save"; b.textContent = "소리 저장";
+        b.addEventListener("click", function () {
+          var a = document.createElement("a"); a.href = URL.createObjectURL(wavBlob(r.audio, 16000));
+          a.download = "hearq_" + (++saveNo) + "_" + (r.rise != null ? r.rise.toFixed(1) : "na") + ".wav"; document.body.appendChild(a); a.click(); a.remove();
+        });
+        line.appendChild(b);
+      }
     }
     $("captions").appendChild(line);
     while ($("captions").children.length > 12) $("captions").removeChild($("captions").firstChild);
