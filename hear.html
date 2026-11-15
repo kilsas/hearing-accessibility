@@ -73,6 +73,14 @@
       </div>
     </div>
     <div class="setting-group">
+      <div class="label" data-i18n="hear.qm">Question marks (beta)</div>
+      <div class="toggle-row" id="qmGroup">
+        <button class="toggle-btn active" data-v="off" data-i18n="hear.qm.off">Off</button>
+        <button class="toggle-btn" data-v="on" data-i18n="hear.qm.on">On</button>
+      </div>
+      <div id="qmNote" style="font-size:12.5px;line-height:1.5;color:var(--muted,#5b6862);margin-top:8px;max-width:300px" data-i18n="hear.qm.note">Korean only. Adds a ? when your voice rises at the end of a sentence. Experimental, so it can be wrong. Pitch is analyzed on your device and not stored.</div>
+    </div>
+    <div class="setting-group">
       <div class="label" data-i18n="hear.speed">Caption speed</div>
       <div class="toggle-row" id="speedGroup">
         <button class="toggle-btn" data-v="slow" data-i18n="hear.speed.slow">Slow</button>
@@ -88,6 +96,7 @@
   <span data-i18n="footer.notice">Not a medical device. Does not diagnose hearing loss.</span>
 </footer>
 
+<script src="js/hear-question-mark.js"></script>
 <script src="js/hear.js"></script>
 </body>
 </html>

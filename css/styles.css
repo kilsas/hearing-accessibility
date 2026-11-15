@@ -507,16 +507,19 @@ section { padding: 64px 0; }
   background: #0E1414;
   color: #F3F5F4;
   border-radius: var(--radius-lg);
-  padding: 40px;
-  min-height: 260px;
+  padding: 32px 40px;
+  height: clamp(260px, 52vh, 480px);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   text-align: center;
   font-size: 26px;
   line-height: 1.5;
   font-weight: 500;
 }
+/* 짧을 땐 가운데, 길어지면 위로 스크롤해서 지난 자막을 볼 수 있어요 */
+.caption-box .caption-text { margin: auto; max-width: 100%; overflow-wrap: anywhere; }
 .caption-box.size-small { font-size: 19px; }
 .caption-box.size-large { font-size: 33px; }
 .caption-box.contrast-high { background: #000; color: #FFFF00; }
