@@ -55,7 +55,7 @@
     <div id="interim" class="interim"></div>
   </section>
 
-  <p class="muted">알아 둘 것: 질문 어미(-니, -냐, -까 등)나 평서문 어미(-ㄹ게, -ㅂ니다, -다 등)가 있으면 어미로 정하고, "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰는 어미는 말끝이 올라가는지로 정해요. 그래서 "몇 시에 시작해요?", "누가 왔어요?"처럼 의문사가 있으면서 말끝이 내려가는 질문은 아직 놓칠 수 있어요.</p>
+  <p class="muted">두 문장을 이어 말하면, 중간에 쉰 자리마다 말끝을 재서 그 자리에 ?를 넣어요 (시험 중). 알아 둘 것: 질문 어미(-니, -냐, -까 등)나 평서문 어미(-ㄹ게, -ㅂ니다, -다 등)가 있으면 어미로 정하고, "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰는 어미는 말끝이 올라가는지로 정해요. 그래서 "몇 시에 시작해요?", "누가 왔어요?"처럼 의문사가 있으면서 말끝이 내려가는 질문은 아직 놓칠 수 있어요.</p>
 </main>
 
 <script src="hear-question-mark.js"></script>
@@ -70,18 +70,37 @@
   $("period").addEventListener("change", function () { HEARQ.addPeriod = this.checked; });
   $("endings").addEventListener("change", function () { HEARQ.useEndings = this.checked; });
 
-  function addLine(text, r) {
+  // 말하다 쉰 자리(marks)마다 그때까지의 단어 수와 말끝 상승을 기억해 뒀다가, 최종 문장에 ?를 끼워 넣어요
+  var interimWords = 0, marks = [];
+  HEARQ.onPause(function (r) {
+    setTimeout(function () { if (interimWords > 0) marks.push({ n: interimWords, r: r }); }, 300);
+  });
+  function fmtRise(r) { return r && r.rise != null ? (r.rise >= 0 ? "+" : "") + r.rise.toFixed(1) : "–"; }
+  function addLine(text, r, mk) {
+    var words = text.split(/\s+/).filter(Boolean), pieces = [], prev = 0;
+    (mk || []).filter(function (m) { return m.n > 0 && m.n < words.length; })
+      .sort(function (a, b) { return a.n - b.n; })
+      .forEach(function (m) {
+        if (m.n <= prev) return;
+        var chunk = words.slice(prev, m.n).join(" "), d = HEARQ.decide(chunk, m.r);
+        pieces.push({ text: chunk, d: d, r: m.r }); prev = m.n;
+      });
+    var last = words.slice(prev).join(" ");
+    pieces.push({ text: last, d: HEARQ.decide(last, r), r: r });
     var line = document.createElement("div"); line.className = "line";
     var t = document.createElement("span"); t.className = "t";
-    var shown = HEARQ.punctuate(text, r), d = HEARQ.decide(text, r);
-    if (d.question) {
-      t.textContent = shown.slice(0, -1);
-      var q = document.createElement("span"); q.className = "q"; q.textContent = "?"; t.appendChild(q);
-    } else { t.textContent = shown; }
+    pieces.forEach(function (p, i) {
+      t.appendChild(document.createTextNode((i ? " " : "") + p.text));
+      if (p.d.question) { var q = document.createElement("span"); q.className = "q"; q.textContent = "?"; t.appendChild(q); }
+      else if (HEARQ.addPeriod) t.appendChild(document.createTextNode("."));
+    });
     line.appendChild(t);
     if ($("showRise").checked) {
       var s = document.createElement("span"); s.className = "r";
-      s.textContent = (r && r.rise != null ? (r.rise >= 0 ? "+" : "") + r.rise.toFixed(1) + "반음" : (r && r.reason) || "") + (/^어미/.test(d.by) ? " · " + d.by : "");
+      s.textContent = pieces.map(function (p) {
+        var lab = p.r && p.r.rise != null ? fmtRise(p.r) + "반음" : ((p.r && p.r.reason) || "");
+        return lab + (/^어미/.test(p.d.by) ? " · " + p.d.by : "");
+      }).join(" / ");
       line.appendChild(s);
     }
     $("captions").appendChild(line);
@@ -99,9 +118,11 @@
         var txt = ev.results[i][0].transcript.trim();
         if (ev.results[i].isFinal) {
           // 최종 결과가 나오면 방금 끝난 말의 말끝 음높이를 재요
-          (function (finalText) { setTimeout(function () { addLine(finalText, HEARQ.judge()); }, 150); })(txt);
+          var myMarks = marks; marks = [];
+          (function (finalText, mk) { setTimeout(function () { addLine(finalText, HEARQ.judge(), mk); }, 150); })(txt, myMarks);
         } else { interim += txt + " "; }
       }
+      interimWords = interim.trim() ? interim.trim().split(/\s+/).length : 0;
       $("interim").textContent = interim;
     };
     rec.onerror = function (e) { $("status").textContent = "음성인식 오류: " + e.error; };

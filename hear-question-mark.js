@@ -249,6 +249,7 @@
     await attachMic();
     try { await Promise.race([resumed, new Promise(function (r) { setTimeout(r, 1500); })]); } catch (e) {}
     API.mode = usedWorklet ? "worklet" : "scriptprocessor";
+    if (!vad.timer) vad.timer = setInterval(vadTick, 50);
     return true;
   }
   // 버튼 클릭 안에서 부르면 멈춘 분석을 다시 켜요
@@ -264,7 +265,21 @@
     return { on: !!ctx, ctx: ctx ? ctx.state : "없음", seconds: total / SR, silentFor: lastChunk ? (Date.now() - lastChunk) / 1000 : null,
              track: tr ? tr.readyState : "없음", muted: tr ? tr.muted : null, mode: API.mode, events: events.slice() };
   }
+  // 말하다가 쉬는 순간을 찾아요. 쉴 때마다 방금 끝난 말의 말끝 상승을 재서 알려 줘요 (두 문장을 이어 말할 때 쓰기)
+  var vad = { speaking: false, on: 0, off: 0, timer: null, cbs: [] };
+  function onPause(cb) { vad.cbs.push(cb); }
+  function vadTick() {
+    if (!ctx || filled < SR * 0.5) return;
+    var x = lastSeconds(3.0), H = Math.round(0.05 * SR), rms = [];
+    for (var s0 = 0; s0 + H <= x.length; s0 += H) { var e = 0; for (var i = 0; i < H; i++) e += x[s0 + i] * x[s0 + i]; rms.push(Math.sqrt(e / H)); }
+    if (rms.length < 4) return;
+    var mx = Math.max.apply(null, rms), fl = pct(rms, 0.2) || 0, thr = Math.max(mx * 0.06, fl * 2.5, 0.002);
+    var now = rms[rms.length - 1] > thr;
+    if (now) { vad.on += 50; vad.off = 0; if (!vad.speaking && vad.on >= 150) vad.speaking = true; }
+    else { vad.off += 50; if (vad.speaking && vad.off >= 350) { vad.speaking = false; vad.on = 0; var r = judge(); vad.cbs.forEach(function (cb) { try { cb(r); } catch (e) {} }); } if (!vad.speaking) vad.on = 0; }
+  }
   function stop() {
+    if (vad.timer) { clearInterval(vad.timer); vad.timer = null; } vad.speaking = false; vad.on = vad.off = 0;
     try { if (node) node.disconnect(); if (src) src.disconnect(); if (stream) stream.getTracks().forEach(function (t) { t.onended = null; t.stop(); }); if (ctx) ctx.close(); } catch (e) {}
     ctx = stream = node = src = null; wpos = 0; filled = 0; total = 0; lastChunk = 0;
   }
@@ -289,13 +304,13 @@
     var t = (text || "").replace(/[\s.?!,~…]+$/, "");
     if (!t) return null;
     var w = t.split(/\s+/).pop();
-    if (/^(아니|아냐)$/.test(w) || /머니$/.test(w)) return null; // "아냐/아니"(=no), "어머니/할머니"는 질문이 아니에요
     if (/니까$/.test(w)) { var p = w.charAt(w.length - 3); return (p && finalOf(p) === 17) ? "-ㅂ니까" : null; } // 합니까(질문) / 오니까(이유)
     if (/니$/.test(w) && w.length >= 2) return "-니";
     if (/냐$/.test(w)) return "-냐";
     if (/나요$/.test(w)) return "-나요";
     if (/까요?$/.test(w) && w.length >= 2 && w !== "아까") return "-까";
     if (/는가요?$/.test(w)) return "-는가";
+    if (/^(언젠가|누군가|뭔가|어딘가|무언가|웬만한가)$/.test(w)) return null; // "언젠가", "누군가"는 질문 어미가 아니라 단어예요
     if (/가요?$/.test(w) && w.length >= 2) { var q = w.charAt(w.length - (/요$/.test(w) ? 3 : 2)); if (q && finalOf(q) === 4) return "-ㄴ가"; }
     return null;
   }
@@ -326,7 +341,7 @@
     return API.addPeriod ? t + "." : t;
   }
 
-  var API = { start: start, stop: stop, wake: wake, status: status, judge: judge, punctuate: punctuate, decide: decide, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
+  var API = { start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
               _pitchTrack: pitchTrack, _finalRise: finalRise, _segments: segments };
   global.HEARQ = API;
 })(window);
