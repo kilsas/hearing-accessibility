@@ -57,7 +57,7 @@
       <b id="pauseVal">0.15</b>
     </div>
     <label class="muted"><input type="checkbox" id="endings" checked> 어미도 보기 (질문 어미 -니, -냐, -까, -나요, -ㅂ니까 / 평서문 어미 -ㄹ게, -ㅂ니다, -다, -구나)</label>
-    <label class="muted"><input type="checkbox" id="period"> 질문이 아니면 마침표 붙이기</label>
+    <label class="muted"><input type="checkbox" id="period" checked> 질문이 아니면 마침표 붙이기 (한국어)</label>
     <label class="muted"><input type="checkbox" id="showRise" checked> 말끝 상승 숫자 보기 (시험용)</label>
   </section>
 
@@ -79,6 +79,7 @@
   var rec = null, running = false;
 
   $("thr").addEventListener("input", function () { HEARQ.threshold = parseFloat(this.value); $("thrVal").textContent = HEARQ.threshold.toFixed(2); });
+  HEARQ.addPeriod = $("period").checked;
   $("period").addEventListener("change", function () { HEARQ.addPeriod = this.checked; });
   $("endings").addEventListener("change", function () { HEARQ.useEndings = this.checked; });
   $("pause").addEventListener("input", function () { HEARQ.pauseMs = Math.round(parseFloat(this.value) * 1000); $("pauseVal").textContent = parseFloat(this.value).toFixed(2); });
@@ -121,19 +122,27 @@
       .sort(function (a, b) { return a.n - b.n; })
       .forEach(function (m) {
         if (m.n <= prev) return;
-        var chunk = words.slice(prev, m.n).join(" ");
-        if (!HEARQ.looksFinal(chunk)) return; // 조사나 연결 어미에서 쉰 거면 문장 중간이라 넘어가요
-        var d = HEARQ.decide(chunk, m.r);
-        pieces.push({ text: chunk, d: d, r: m.r }); prev = m.n;
+        var chunk = words.slice(prev, m.n).join(" "), next = words[m.n] || "";
+        var kind = HEARQ.pauseType(chunk);
+        if (kind === "none") return;                 // 조사나 부사 뒤에서 쉰 거면 아무것도 안 넣어요
+        if (kind === "comma") { pieces.push({ text: chunk, punct: ",", d: { question: false, by: "쉼" }, r: m.r }); prev = m.n; return; }
+        var d = HEARQ.decide(chunk, m.r), punct;
+        if (d.question) punct = "?";
+        else if (isEn) punct = /^(and|but|so|because|or|then|cause)$/i.test(next) ? "," : ".";
+        else punct = HEARQ.addPeriod ? "." : "";
+        pieces.push({ text: chunk, punct: punct, d: d, r: m.r }); prev = m.n;
       });
-    var last = words.slice(prev).join(" ");
-    pieces.push({ text: last, d: HEARQ.decide(last, r), r: r });
+    var last = words.slice(prev).join(" "), dl = HEARQ.decide(last, r);
+    pieces.push({ text: last, punct: dl.question ? "?" : ((HEARQ.addPeriod || isEn) ? "." : ""), d: dl, r: r });
     var line = document.createElement("div"); line.className = "line";
     var t = document.createElement("span"); t.className = "t";
+    var sentenceStart = true;
     pieces.forEach(function (p, i) {
-      t.appendChild(document.createTextNode((i ? " " : "") + (isEn ? HEARQ.englishCase(p.text) : p.text)));
-      if (p.d.question) { var q = document.createElement("span"); q.className = "q"; q.textContent = "?"; t.appendChild(q); }
-      else if (HEARQ.addPeriod || isEn) t.appendChild(document.createTextNode("."));
+      var txt = isEn ? (sentenceStart ? HEARQ.englishCase(p.text) : HEARQ.fixI(p.text)) : p.text;
+      t.appendChild(document.createTextNode((i ? " " : "") + txt));
+      if (p.punct === "?") { var q = document.createElement("span"); q.className = "q"; q.textContent = "?"; t.appendChild(q); }
+      else if (p.punct) t.appendChild(document.createTextNode(p.punct));
+      sentenceStart = (p.punct === "?" || p.punct === ".");
     });
     line.appendChild(t);
     if ($("showRise").checked) {

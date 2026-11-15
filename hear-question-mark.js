@@ -368,6 +368,7 @@
     if (EN_WH_CONTR.test(w[0])) return "의문사 (" + w[0] + "…)";
     if (w.length >= 2 && EN_WH.test(w[0]) && (EN_AUX.test(w[1]) || /^(many|much|long|often|far|old|about|else)$/.test(w[1]))) return "의문사 (" + w[0] + " " + w[1] + "…)";
     if (w.length >= 3 && EN_WH.test(w[0]) && EN_AUX.test(w[2])) return "의문사 (" + w.slice(0, 3).join(" ") + "…)"; // what time is it, which one is
+    if (w.length >= 3 && EN_WH.test(w[0]) && /^(you|we|they|he|she|i|it|u)$/.test(w[1]) && /ing$/.test(w[2])) return "의문사 (" + w.slice(0, 3).join(" ") + "…)"; // where you going, what you doing (be동사가 빠진 말투)
     var tail = w.slice(-2).join(" ");
     if (w.length >= 4 && EN_TAGS.test(tail) && !/^(turn|go|on|the|to)$/.test(w[w.length - 2])) return "꼬리 질문 (…" + tail + ")";
     return null;
@@ -380,6 +381,32 @@
     if (m && !/^(done|said|then|there)$/i.test(m[2]) && t.indexOf(",") !== m[1].length) t = m[1] + "," + t.slice(m[1].length);
     return t.charAt(0).toUpperCase() + t.slice(1);
   }
+  // 쉰 자리 앞이 "okay", "so", "well", "by the way" 같은 말뿐이면 마침표 대신 쉼표를 넣어요
+  var EN_DISCOURSE = /^(okay|ok|so|well|um|uh|oh|hey|alright|yeah|yes|no|anyway|anyways|actually|hi|hello|sorry|now|wait|hmm|listen|look|honestly|right|then)$/;
+  function isDiscourse(chunk) {
+    var w = enWords(chunk);
+    if (!w.length || w.length > 3) return false;
+    var j = w.join(" ");
+    if (/^(by the way|all right|you know|i mean)$/.test(j)) return true;
+    return w.every(function (x) { return EN_DISCOURSE.test(x); });
+  }
+  function fixI(text) { return (text || "").replace(/\bi\b/g, "I").replace(/\bi'(m|ve|ll|d)\b/g, "I'$1"); }
+  // 쉰 자리를 어떻게 처리할지 정해요: "final"(문장 끝: ? 또는 .), "comma"(쉼표), "none"(아무것도 안 넣음)
+  var KO_CONNECTIVE = /(고|서|면|으면|는데|은데|던데|지만|니까|며|으며|면서|려고|도록|거나|든지|자마자)$/;
+  var KO_DISCOURSE = /^(아|어|음|응|네|예|아니|야|저기|있잖아|근데|그런데|그래서|그리고|그러니까|하지만|그럼|그러면|아니면|그래|자|참|와)$/;
+  function pauseType(chunk) {
+    var w = ((chunk || "").trim().split(/\s+/).pop() || "").replace(/[.?!,]+$/, "");
+    if (!w) return "none";
+    if (isEnglish()) {
+      if (isDiscourse(chunk)) return "comma";
+      return looksFinal(chunk) ? "final" : "none";
+    }
+    if (endingQuestion(w) || endingStatement(w)) return "final";
+    if (KO_DISCOURSE.test(w)) return "comma";
+    if (/에서$/.test(w)) return "none";             // 학교에서 (장소 조사)
+    if (KO_CONNECTIVE.test(w)) return "comma";      // 비가 오니까, 밥 먹고, 했는데
+    return looksFinal(chunk) ? "final" : "none";   // 나는, 어제 → 아무것도 안 넣음
+  }
   function isEnglish() { return /^en/i.test(API.lang || ""); }
 
   // 짧게 쉰 자리가 문장 끝인지 확인해요. 조사(은/는/이/가…)나 연결 어미(-고, -서, -는데…)로 끝나면 문장 중간이라 ?를 넣지 않아요.
@@ -391,8 +418,7 @@
     w = w.replace(/[.?!,]+$/, "");
     if (!w) return false;
     if (isEnglish()) return !EN_NONFINAL.test(w.toLowerCase());
-    if (endingStatement(w) && /게요?$/.test(w)) return true; // 연락할게(요)는 문장 끝
-    if (endingQuestion(w)) return true; // 했니, 합니까, 가냐는 문장 끝 (조사 목록에 걸려도)
+    if (endingQuestion(w) || (endingStatement(w) && /게요?$/.test(w))) return true; // 합니까, 연락할게(요)는 문장 끝
     if (w === "가") return true; // "학교 가"처럼 동사 "가"로 끝나는 말
     if (/^(그런데|근데|그래서|그리고|그러니까|하지만|그러면|그럼|아니면|어제|오늘|내일|지금|아까|나중에|그냥|진짜|정말|아직|벌써)$/.test(w)) return false; // 접속사·부사에서 쉰 건 문장 중간
     return !KO_NONFINAL.test(w);
@@ -421,7 +447,7 @@
     return (API.addPeriod || isEnglish()) ? t + "." : t;
   }
 
-  var API = { start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, looksFinal: looksFinal, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
+  var API = { start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
               _pitchTrack: pitchTrack, _finalRise: finalRise, _segments: segments };
   global.HEARQ = API;
 })(window);
