@@ -299,8 +299,21 @@
     if (/가요?$/.test(w) && w.length >= 2) { var q = w.charAt(w.length - (/요$/.test(w) ? 3 : 2)); if (q && finalOf(q) === 4) return "-ㄴ가"; }
     return null;
   }
+  // 문장 끝 어미만 봐도 평서문인 게 확실한 경우 (예: 연락할게, 갈게요, 감사합니다, 했다, 그렇구나)
+  function endingStatement(text) {
+    var t = (text || "").replace(/[\s.?!,~…]+$/, "");
+    if (!t) return null;
+    var w = t.split(/\s+/).pop();
+    if (/게요?$/.test(w) && w.length >= 2) { var p = w.charAt(w.length - (/요$/.test(w) ? 3 : 2)); if (p && finalOf(p) === 8) return "-ㄹ게"; } // 할게, 먹을게 (어떻게는 아님)
+    if (/니다$/.test(w)) return "-ㅂ니다";
+    if (/구나$|군요?$/.test(w)) return "-구나";
+    if (/다$/.test(w) && w.length >= 2) return "-다";
+    return null;
+  }
   // 어미와 음높이를 합쳐서 정해요. 어미가 확실하면 어미로, 아니면 말끝 음높이로.
   function decide(text, r) {
+    var st = API.useEndings ? endingStatement(text) : null;
+    if (st) return { question: false, by: "어미 " + st };
     var e = API.useEndings ? endingQuestion(text) : null;
     if (e) return { question: true, by: "어미 " + e };
     if (r && r.question) return { question: true, by: "억양" };
@@ -313,7 +326,7 @@
     return API.addPeriod ? t + "." : t;
   }
 
-  var API = { start: start, stop: stop, wake: wake, status: status, judge: judge, punctuate: punctuate, decide: decide, endingQuestion: endingQuestion, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
+  var API = { start: start, stop: stop, wake: wake, status: status, judge: judge, punctuate: punctuate, decide: decide, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
               _pitchTrack: pitchTrack, _finalRise: finalRise, _segments: segments };
   global.HEARQ = API;
 })(window);
