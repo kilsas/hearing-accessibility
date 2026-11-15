@@ -182,9 +182,9 @@ window.HearI18n = (function () {
       'hear.language.en': 'English', 'hear.language.ko': 'Korean',
       'hear.speed': 'Caption speed',
       'hear.speed.slow': 'Slow', 'hear.speed.normal': 'Normal', 'hear.speed.fast': 'Fast',
-      'hear.qm': 'Punctuation (beta)',
+      'hear.qm': 'Punctuation',
       'hear.qm.off': 'Off', 'hear.qm.on': 'On',
-      'hear.qm.note': "Adds ? . , and capital letters from how your voice sounds and the words you use. Experimental, so it can be wrong. Pitch is analyzed on your device and not stored.",
+      'hear.qm.note': "Adds ? . , and capital letters to your captions. Your voice pitch is analyzed on your device and not stored.",
       'hear.deniedMic': 'Microphone access was denied. Please allow microphone access to use Live Hear.',
       'hear.listening': 'Listening…',
 
@@ -777,9 +777,9 @@ window.HearI18n = (function () {
       'hear.language.en': '영어', 'hear.language.ko': '한국어',
       'hear.speed': '자막 속도',
       'hear.speed.slow': '느리게', 'hear.speed.normal': '보통', 'hear.speed.fast': '빠르게',
-      'hear.qm': '문장부호 (시험 중)',
+      'hear.qm': '문장부호',
       'hear.qm.off': '끄기', 'hear.qm.on': '켜기',
-      'hear.qm.note': '목소리 높낮이와 말투로 ? . , 를 붙이고, 영어는 대문자도 바꿔요. 시험 중인 기능이라 틀릴 수 있어요. 음높이는 기기 안에서만 분석하고 저장하지 않아요.',
+      'hear.qm.note': '자막에 ? . , 를 붙이고, 영어는 대문자도 바꿔요. 목소리 높낮이는 기기 안에서만 분석하고 저장하지 않아요.',
       'hear.deniedMic': '마이크 접근이 거부되었습니다. Live Hear를 사용하려면 마이크 접근을 허용해 주세요.',
       'hear.listening': '듣는 중…',
 
