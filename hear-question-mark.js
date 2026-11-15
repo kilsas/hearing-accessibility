@@ -151,7 +151,11 @@
     for (i = last; i > last - endFrames && i >= 0; i--) if (st[i] != null) endVals.push(st[i]);
     if (endVals.length < 3) return null;
     var w0 = Math.max(0, last - Math.round(0.5 / hop)), w1 = last - endFrames, pre = [];
-    for (i = w0; i <= w1; i++) if (st[i] != null) pre.push(st[i]);
+    // (11월 16일) 비교 구간에서 평소 목소리보다 9반음 넘게 낮은 값은 빼요.
+    // 갈라지는 소리나 "피자"의 "피"처럼 짧은 소리에서 음높이가 한 옥타브 아래로 잘못 잡히면
+    // 말끝이 안 올라갔는데도 +15반음처럼 크게 나왔어요. 말끝 구간(endVals)은 그대로 둬요:
+    // 평서문 끝이 낮게 떨어지는 건 진짜 정보라서요.
+    for (i = w0; i <= w1; i++) if (st[i] != null && st[i] >= -9) pre.push(st[i]);
     if (pre.length < 3) return null;
     return { rise: pct(endVals, 0.9) - pct(pre, 0.1), last: last, w0: w0 };
   }

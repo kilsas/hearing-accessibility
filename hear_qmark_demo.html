@@ -113,14 +113,21 @@
   }
   var saveNo = 0;
   function fmtRise(r) { return r && r.rise != null ? (r.rise >= 0 ? "+" : "") + r.rise.toFixed(1) : "–"; }
+  var EN_STANDALONE = /^(really|why|what|how|who|where|when|okay|ok|yes|yeah|yep|no|nope|right|sure|seriously|thanks|sorry|please|hi|hello|bye|wow|oh)$/i;
   function addLine(text, r, mk) {
     var words = text.split(/\s+/).filter(Boolean), pieces = [], prev = 0;
     mk = (mk || []).slice();
     var isEn = /^en/.test(HEARQ.lang);
     if (!isEn) HEARQ.midQuestionIndexes(words).forEach(function (n) { if (!mk.some(function (m) { return Math.abs(m.n - n) <= 1; })) mk.push({ n: n, r: null }); });
-    mk.filter(function (m) { return m.n > 0 && m.n < words.length; })
-      .sort(function (a, b) { return a.n - b.n; })
-      .forEach(function (m) {
+    var sorted = mk.filter(function (m) { return m.n > 0 && m.n < words.length; })
+      .sort(function (a, b) { return a.n - b.n; });
+    // (11월 16일) 영어: 쉰 뒤에 남은 게 한 단어뿐이면 (예: "I had ... pizza") 앞에 붙여요.
+    // "Really?", "Why?"처럼 혼자서도 문장이 되는 말은 그대로 둬요.
+    if (isEn) sorted = sorted.filter(function (m, i) {
+      var end = i + 1 < sorted.length ? sorted[i + 1].n : words.length;
+      return !(end - m.n === 1 && !EN_STANDALONE.test((words[m.n] || "").replace(/[^a-z']/gi, "")));
+    });
+    sorted.forEach(function (m) {
         if (m.n <= prev) return;
         var chunk = words.slice(prev, m.n).join(" "), next = words[m.n] || "";
         var kind = HEARQ.pauseType(chunk);
