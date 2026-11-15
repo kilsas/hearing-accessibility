@@ -26,6 +26,11 @@
   canvas.spark { width:120px; height:28px; flex:none; }
   .save { font-size:.75rem; padding:3px 8px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--muted); cursor:pointer; font-weight:500; }
   input[type=range] { flex:1; min-width:200px; accent-color:var(--accent); }
+  input.small { font:inherit; width:5.5em; padding:6px 8px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--ink); }
+  .tag { font-size:.75rem; color:var(--muted); font-family:ui-monospace,Menlo,monospace; white-space:nowrap; }
+  .ox { font-size:.8rem; padding:2px 9px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--muted); cursor:pointer; font-weight:700; }
+  .ox.on.o { background:#15803d; border-color:#15803d; color:#fff; }
+  .ox.on.x { background:#b91c1c; border-color:#b91c1c; color:#fff; }
 </style>
 </head>
 <body>
@@ -59,6 +64,22 @@
     <label class="muted"><input type="checkbox" id="endings" checked> 어미도 보기 (질문 어미 -니, -냐, -까, -나요, -ㅂ니까 / 평서문 어미 -ㄹ게, -ㅂ니다, -다, -구나)</label>
     <label class="muted"><input type="checkbox" id="period" checked> 질문이 아니면 마침표 붙이기 (한국어)</label>
     <label class="muted"><input type="checkbox" id="showRise" checked> 말끝 상승 숫자 보기 (시험용)</label>
+  </section>
+
+  <section class="panel">
+    <div class="row">
+      <label for="who" class="muted">친구</label>
+      <input id="who" class="small" placeholder="예: G">
+      <label for="sentNo" class="muted">문장 번호</label>
+      <input id="sentNo" class="small" type="number" min="1" value="1">
+      <label class="muted"><input type="checkbox" id="autoNo" checked> 한 줄 나올 때마다 번호 +1</label>
+    </div>
+    <div class="row">
+      <button id="dl" class="off">기록 내려받기 (CSV)</button>
+      <button id="clearLog" class="off">기록 지우기</button>
+      <span id="logCount" class="muted">기록 0줄</span>
+    </div>
+    <p class="muted">줄마다 나온 자막, 말끝 상승 숫자, 어미·어순 판단, 설정값이 자동으로 기록돼요. 자막 옆 O / X를 누르면 채점도 같이 저장돼요. 소리는 기록에 들어가지 않아요. 기록은 이 브라우저에만 남고, 내려받기를 눌러야 파일이 생겨요.</p>
   </section>
 
   <section class="panel">
@@ -112,6 +133,28 @@
     return new Blob([buf], { type: "audio/wav" });
   }
   var saveNo = 0;
+
+  // ---- 시험 기록 (11월 16일) ----
+  var LOG_KEY = "hearq_log_v1", log = [];
+  try { log = JSON.parse(localStorage.getItem(LOG_KEY) || "[]") || []; } catch (e) { log = []; }
+  function saveLog() { try { localStorage.setItem(LOG_KEY, JSON.stringify(log)); } catch (e) {} $("logCount").textContent = "기록 " + log.length + "줄"; }
+  function nowStr() { var d = new Date(), p = function (n) { return (n < 10 ? "0" : "") + n; }; return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()); }
+  var COLS = [["time", "시각"], ["who", "친구"], ["no", "문장 번호"], ["lang", "언어"], ["ox", "O/X"], ["caption", "나온 자막"], ["asr", "인식된 글자"],
+              ["endRise", "말끝 상승(반음)"], ["pieces", "조각별 판단"], ["threshold", "기준값"], ["pauseMs", "쉬는 시간(ms)"], ["endings", "어미 보기"], ["period", "마침표"], ["version", "버전"]];
+  function csvCell(v) { v = v == null ? "" : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  $("dl").addEventListener("click", function () {
+    var lines = [COLS.map(function (c) { return c[1]; }).join(",")].concat(log.map(function (e) { return COLS.map(function (c) { return csvCell(e[c[0]]); }).join(","); }));
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" }));
+    a.download = "hearq_기록_" + nowStr().replace(/[: ]/g, "-") + ".csv"; document.body.appendChild(a); a.click(); a.remove();
+  });
+  var clearArmed = false;
+  $("clearLog").addEventListener("click", function () {
+    if (!clearArmed) { clearArmed = true; this.textContent = "한 번 더 누르면 지워져요"; var b = this; setTimeout(function () { clearArmed = false; b.textContent = "기록 지우기"; }, 3000); return; }
+    clearArmed = false; this.textContent = "기록 지우기"; log = []; saveLog();
+  });
+  saveLog();
+
   function fmtRise(r) { return r && r.rise != null ? (r.rise >= 0 ? "+" : "") + r.rise.toFixed(1) : "–"; }
   var EN_STANDALONE = /^(really|why|what|how|who|where|when|okay|ok|yes|yeah|yep|no|nope|right|sure|seriously|thanks|sorry|please|hi|hello|bye|wow|oh)$/i;
   function addLine(text, r, mk) {
@@ -152,6 +195,25 @@
       sentenceStart = (p.punct === "?" || p.punct === ".");
     });
     line.appendChild(t);
+    // 기록 한 줄 남기기
+    var who = $("who").value.trim(), no = parseInt($("sentNo").value, 10) || "";
+    var entry = {
+      time: nowStr(), who: who, no: no, lang: HEARQ.lang, ox: "", caption: t.textContent, asr: text,
+      endRise: r && r.rise != null ? r.rise.toFixed(2) : (r && r.reason) || "",
+      pieces: pieces.map(function (p) { return p.text + " [" + (p.punct || "없음") + "] " + (p.r && p.r.rise != null ? fmtRise(p.r) : "–") + (p.d.by ? " " + p.d.by : ""); }).join(" / "),
+      threshold: HEARQ.threshold, pauseMs: HEARQ.pauseMs, endings: HEARQ.useEndings ? "켬" : "끔", period: HEARQ.addPeriod ? "켬" : "끔", version: HEARQ.version || ""
+    };
+    log.push(entry); saveLog();
+    if ($("autoNo").checked && no !== "") $("sentNo").value = no + 1;
+    var tag = document.createElement("span"); tag.className = "tag"; tag.textContent = (who ? who + " " : "") + (no !== "" ? "#" + no : ""); line.insertBefore(tag, t);
+    ["O", "X"].forEach(function (v) {
+      var bt = document.createElement("button"); bt.className = "ox " + v.toLowerCase(); bt.textContent = v;
+      bt.addEventListener("click", function () {
+        entry.ox = entry.ox === v ? "" : v; saveLog();
+        Array.prototype.forEach.call(line.querySelectorAll(".ox"), function (x) { x.classList.toggle("on", x.textContent === entry.ox); });
+      });
+      line.appendChild(bt);
+    });
     if ($("showRise").checked) {
       var s = document.createElement("span"); s.className = "r";
       s.textContent = pieces.map(function (p) {
@@ -164,7 +226,7 @@
         var b = document.createElement("button"); b.className = "save"; b.textContent = "소리 저장";
         b.addEventListener("click", function () {
           var a = document.createElement("a"); a.href = URL.createObjectURL(wavBlob(r.audio, 16000));
-          a.download = "hearq_" + (++saveNo) + "_" + (r.rise != null ? r.rise.toFixed(1) : "na") + ".wav"; document.body.appendChild(a); a.click(); a.remove();
+          a.download = "hearq_" + (who ? who + "_" : "") + (no !== "" ? no + "_" : "") + (++saveNo) + "_" + (r.rise != null ? r.rise.toFixed(1) : "na") + ".wav"; document.body.appendChild(a); a.click(); a.remove();
         });
         line.appendChild(b);
       }
