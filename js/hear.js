@@ -57,23 +57,21 @@
     if (stickToBottom) captionBox.scrollTop = captionBox.scrollHeight;
   }
 
-  // ---- question marks (beta, Korean only) ----
-  // 말끝 음높이가 올라가면 ?를 붙이는 시험 기능이에요. 기본은 꺼짐입니다.
+  // ---- 문장부호 (beta) ----
+  // 말끝 음높이와 어미·어순으로 ? . , 와 영어 대문자를 붙이는 시험 기능이에요. 기본은 꺼짐입니다.
   let qmOn = false;
   let qmMarks = [];
   let qmPending = [];
   let qmInterimWords = 0;
   let lastInterim = '';
-  function qmActive() { return qmOn && lang === 'ko-KR' && !!window.HEARQ; }
+  function qmActive() { return qmOn && !!window.HEARQ; }
   function qmSync() {
     const Q = window.HEARQ;
     if (!Q) return;
+    Q.lang = lang;
+    Q.addPeriod = true; // 한국어도 질문이 아니면 마침표를 붙여요 (영어는 항상)
     const want = qmActive() && listening;
-    const note = document.getElementById('qmNote');
-    if (note) note.style.opacity = lang === 'ko-KR' ? '1' : '0.6';
     if (want) {
-      Q.lang = 'ko-KR';
-      Q.addPeriod = false;
       Q.start().catch(() => { qmOn = false; syncQmToggle(); });
     } else {
       try { Q.stop(); } catch (e) {}
@@ -89,26 +87,48 @@
       setTimeout(() => { if (qmActive() && qmInterimWords > 0) qmMarks.push({ n: qmInterimWords, r }); }, 250);
     });
   }
-  // 한 문장(또는 쉬며 이어 말한 여러 문장)에 ?를 끼워 넣어 글자로 돌려줘요.
+  // 한 번 끝난 말(쉬며 이어 말한 여러 문장 포함)에 ? . , 와 영어 대문자를 붙여 글자로 돌려줘요.
+  const EN_STANDALONE = /^(really|why|what|how|who|where|when|okay|ok|yes|yeah|yep|no|nope|right|sure|seriously|thanks|sorry|please|hi|hello|bye|wow|oh)$/i;
   function qmFormat(text, r, mk) {
     const Q = window.HEARQ;
+    const isEn = /^en/.test(lang);
     const words = text.split(/\s+/).filter(Boolean);
     if (!words.length) return text;
     const marks = (mk || []).slice();
-    Q.midQuestionIndexes(words).forEach((n) => { if (!marks.some((m) => Math.abs(m.n - n) <= 1)) marks.push({ n, r: null }); });
-    const sorted = marks.filter((m) => m.n > 0 && m.n < words.length).sort((a, b) => a.n - b.n);
-    const out = [];
+    if (!isEn) Q.midQuestionIndexes(words).forEach((n) => { if (!marks.some((m) => Math.abs(m.n - n) <= 1)) marks.push({ n, r: null }); });
+    let sorted = marks.filter((m) => m.n > 0 && m.n < words.length).sort((a, b) => a.n - b.n);
+    // 영어: 쉰 뒤에 남은 게 한 단어뿐이면 앞에 붙여요 ("Really?", "Why?" 같은 말은 그대로)
+    if (isEn) sorted = sorted.filter((m, i) => {
+      const end = i + 1 < sorted.length ? sorted[i + 1].n : words.length;
+      return !(end - m.n === 1 && !EN_STANDALONE.test((words[m.n] || '').replace(/[^a-z']/gi, '')));
+    });
+    const pieces = [];
     let prev = 0;
     sorted.forEach((m) => {
       if (m.n <= prev) return;
       const chunk = words.slice(prev, m.n).join(' ');
-      if (Q.pauseType(chunk) !== 'final') return; // 조사·연결 어미에서 쉰 건 문장 중간
-      out.push(chunk + (Q.decide(chunk, m.r).question ? '?' : ''));
-      prev = m.n;
+      const next = words[m.n] || '';
+      const kind = Q.pauseType(chunk);
+      if (kind === 'none') return; // 조사나 부사 뒤에서 쉰 거면 아무것도 안 넣어요
+      if (kind === 'comma') { pieces.push({ text: chunk, punct: ',' }); prev = m.n; return; }
+      const d = Q.decide(chunk, m.r);
+      let punct;
+      if (d.question) punct = '?';
+      else if (isEn) punct = /^(and|but|so|because|or|then|cause)$/i.test(next) ? ',' : '.';
+      else punct = Q.addPeriod ? '.' : '';
+      pieces.push({ text: chunk, punct }); prev = m.n;
     });
     const last = words.slice(prev).join(' ');
-    out.push(last + (Q.decide(last, r).question ? '?' : ''));
-    return out.join(' ');
+    const dl = Q.decide(last, r);
+    pieces.push({ text: last, punct: dl.question ? '?' : ((Q.addPeriod || isEn) ? '.' : '') });
+    let out = '';
+    let sentenceStart = true;
+    pieces.forEach((p, i) => {
+      const txt = isEn ? (sentenceStart ? Q.englishCase(p.text) : Q.fixI(p.text)) : p.text;
+      out += (i ? ' ' : '') + txt + p.punct;
+      sentenceStart = (p.punct === '?' || p.punct === '.');
+    });
+    return out;
   }
   function showCaption() {
     const display = (finalTranscript + qmPending.join(' ') + ' ' + lastInterim).trim();
