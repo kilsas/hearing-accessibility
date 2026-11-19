@@ -467,6 +467,15 @@
     if (r && r.front != null && r.front > API.whRise && startsWithWh(text)) return { question: true, by: "의문사 음높이" };
     return { question: false, by: r && r.rise != null ? "억양" : "" };
   }
+  // (11월 19일) 확신 없는 물음표: 의문사로 시작하고, 질문 어미도 평서 어미도 없고, 말끝 상승이 애매한 구간(2반음 이상, 기준값 미만)이면
+  // 진한 ? 대신 흐린 ? 를 붙여요. 구간은 시험 전에 정해 둔 값이고 464개 녹음을 보고 바꾸지 않았어요.
+  function uncertain(text, r) {
+    if (!r || r.rise == null) return false;
+    if (!startsWithWh(text)) return false;
+    var d = decide(text, r);
+    if (d.question || (API.useEndings && !isEnglish() && endingStatement(text))) return false;
+    return r.rise >= API.uncertainLo && r.rise < API.threshold;
+  }
   function punctuate(text, r) {
     var t = (text || "").replace(/\s+$/, "").replace(/[.?!]+$/, "");
     if (!t) return t;
@@ -475,7 +484,7 @@
     return (API.addPeriod || isEnglish()) ? t + "." : t;
   }
 
-  var API = { version: "2026-11-16", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1.75, addPeriod: false, rawAudio: false,
-              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, startsWithWh: startsWithWh, _segments: segments };
+  var API = { version: "2026-11-16", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, uncertainLo: 2, addPeriod: false, rawAudio: false,
+              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
   global.HEARQ = API;
 })(window);

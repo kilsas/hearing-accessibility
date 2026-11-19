@@ -42,7 +42,7 @@
   }
   // 문장을 눌러서 ? 와 . 를 서로 바꿔요 (문장부호를 켰을 때만, 이 기기 안에서만 바뀌고 어디로도 보내지 않아요)
   function flipMark(t) {
-    t = t.trim();
+    t = t.replace(/\uE000/g, '').trim();
     if (/\?$/.test(t)) return t.replace(/\?$/, '.');
     if (/[.!,]$/.test(t)) return t.replace(/[.!,]$/, '?');
     return t + '?';
@@ -80,6 +80,7 @@
   let qmMarks = [];
   let qmPending = [];
   let qmInterimWords = 0;
+  let lastResultAt = 0;
   let lastInterim = '';
   function qmActive() { return qmOn && !!window.HEARQ; }
   function qmSync() {
@@ -102,9 +103,19 @@
   if (window.HEARQ) {
     window.HEARQ.onPause((r) => {
       setTimeout(() => { if (qmActive() && qmInterimWords > 0) qmMarks.push({ n: qmInterimWords, r }); }, 250);
+      // 소리는 1초 넘게 들어왔는데 글자가 하나도 안 나왔으면 "…"를 넣어서 놓친 걸 알려 줘요
+      const t0 = Date.now();
+      const dur = r && r.audio ? r.audio.length / 16000 : 0;
+      if (dur >= 1) {
+        setTimeout(() => {
+          if (!qmActive() || !listening) return;
+          if (lastResultAt < t0 - dur * 1000 - 300) { appendFinal('…'); showCaption(); }
+        }, 2000);
+      }
     });
   }
   // 한 번 끝난 말(쉬며 이어 말한 여러 문장 포함)에 ? . , 와 영어 대문자를 붙여 글자로 돌려줘요.
+  const QDIM = '\uE000?'; // 흐린 물음표(확신 없음) 표시용 안 보이는 글자 + ?
   const EN_STANDALONE = /^(really|why|what|how|who|where|when|okay|ok|yes|yeah|yep|no|nope|right|sure|seriously|thanks|sorry|please|hi|hello|bye|wow|oh)$/i;
   function qmFormat(text, r, mk) {
     const Q = window.HEARQ;
@@ -131,19 +142,20 @@
       const d = Q.decide(chunk, m.r);
       let punct;
       if (d.question) punct = '?';
+      else if (Q.uncertain(chunk, m.r)) punct = QDIM;
       else if (isEn) punct = /^(and|but|so|because|or|then|cause)$/i.test(next) ? ',' : '.';
       else punct = Q.addPeriod ? '.' : '';
       pieces.push({ text: chunk, punct }); prev = m.n;
     });
     const last = words.slice(prev).join(' ');
     const dl = Q.decide(last, r);
-    pieces.push({ text: last, punct: dl.question ? '?' : ((Q.addPeriod || isEn) ? '.' : '') });
+    pieces.push({ text: last, punct: dl.question ? '?' : (Q.uncertain(last, r) ? QDIM : ((Q.addPeriod || isEn) ? '.' : '')) });
     let out = '';
     let sentenceStart = true;
     pieces.forEach((p, i) => {
       const txt = isEn ? (sentenceStart ? Q.englishCase(p.text) : Q.fixI(p.text)) : p.text;
       out += (i ? ' ' : '') + txt + p.punct;
-      sentenceStart = (p.punct === '?' || p.punct === '.');
+      sentenceStart = (p.punct === '?' || p.punct === '.' || p.punct === QDIM);
     });
     return out;
   }
@@ -159,7 +171,10 @@
         s.className = qmOn ? 'seg editable' : 'seg';
         s.dataset.i = String(i);
         if (qmOn) s.title = T('hear.qm.tap');
-        s.textContent = t;
+        t.split(/(\uE000\?)/).forEach((part) => {
+          if (part === QDIM) { const q = document.createElement('span'); q.className = 'qdim'; q.textContent = '?'; if (qmOn) q.title = T('hear.qm.dim'); s.appendChild(q); }
+          else if (part) s.appendChild(document.createTextNode(part));
+        });
         span.appendChild(s);
         span.appendChild(document.createTextNode(' '));
       });
@@ -175,6 +190,7 @@
     recognition.lang = lang;
 
     recognition.onresult = (event) => {
+      lastResultAt = Date.now();
       let interim = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;

@@ -1040,3 +1040,4 @@ main.wrap section > p + .btn-primary { margin-top: 6px; }
 
 .caption-box .seg.editable { cursor: pointer; }
 .caption-box .seg.editable:hover { text-decoration: underline dotted; text-underline-offset: 4px; }
+.caption-box .seg .qdim { opacity: .4; }
