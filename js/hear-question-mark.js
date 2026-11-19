@@ -160,6 +160,21 @@
     return { rise: pct(endVals, 0.9) - pct(pre, 0.1), last: last, w0: w0 };
   }
 
+  // (11월 19일) 앞 올라감: 소리가 시작하고 0.05초 뒤부터 0.45초까지(첫 두 음절쯤)에서 가장 높은 값 - 그 앞의 가장 낮은 값
+  // 의문사(누가·뭐·언제…)로 시작하는 문장의 첫 단어가 올라가는지 보려고 써요. 연구(4차 녹음)에서 1.75반음을 기준으로 했어요.
+  function frontRise(st, hop) {
+    var first = -1, i;
+    for (i = 0; i < st.length; i++) if (st[i] != null) { first = i; break; }
+    if (first < 0) return null;
+    var a = first + Math.round(0.05 / hop), b = Math.min(st.length - 1, first + Math.round(0.45 / hop));
+    var pk = null, pi = -1;
+    for (i = a; i <= b; i++) if (st[i] != null && (pk == null || st[i] > pk)) { pk = st[i]; pi = i; }
+    if (pk == null) return null;
+    var lo = null;
+    for (i = first; i <= pi; i++) if (st[i] != null && (lo == null || st[i] < lo)) lo = st[i];
+    return pk - lo;
+  }
+
   // 쉬는 구간(0.35초 이상)에서 나누기
   function segments(x, sr) {
     var H = Math.round(0.01 * sr), N = Math.round(0.025 * sr), rms = [], maxR = 0;
@@ -299,7 +314,7 @@
     var sg = segs[segs.length - 1], seg = x.slice(sg[0], sg[1]);
     var pt = pitchTrack(seg, SR), fr = finalRise(pt.st, pt.hop);
     if (!fr) return { rise: null, question: false, reason: "음높이를 못 찾았어요", audio: seg, st: pt.st };
-    return { rise: fr.rise, question: fr.rise >= API.threshold, reason: "", audio: seg, st: pt.st, w0: fr.w0, last: fr.last };
+    return { rise: fr.rise, front: frontRise(pt.st, pt.hop), question: fr.rise >= API.threshold, reason: "", audio: seg, st: pt.st, w0: fr.w0, last: fr.last };
   }
   // 문장 끝 어미만 봐도 질문인 게 확실한 경우 (예: 먹었니, 가냐, 하나요, 합니까, 할까, 인가요)
   // "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰이는 어미는 여기서 정하지 않고 음높이로 정해요.
@@ -429,11 +444,19 @@
   }
 
   // 어미와 음높이를 합쳐서 정해요. 어미가 확실하면 어미로, 아니면 말끝 음높이로.
+  // 의문사로 시작하는 말인지 (누가 왔어요, 뭐 먹었어요, what are you doing …)
+  var KO_WH = /^(누가|누구|누굴|누구를|뭐|뭘|뭔|무엇|무슨|어디|어디서|언제|왜|어떻게|어떤|어느|얼마|몇)/;
+  function startsWithWh(text) {
+    var w = (text || "").trim().split(/\s+/)[0] || "";
+    if (isEnglish()) return /^(what|where|when|why|who|whom|whose|which|how)$/.test(w.toLowerCase().replace(/[^a-z]/g, ""));
+    return KO_WH.test(w);
+  }
   function decide(text, r) {
     if (isEnglish()) {
       var en = API.useEndings ? englishQuestion(text) : null;
       if (en) return { question: true, by: en };
       if (r && r.question) return { question: true, by: "억양" };
+      if (r && r.front != null && r.front > API.whRise && startsWithWh(text)) return { question: true, by: "의문사 음높이" };
       return { question: false, by: r && r.rise != null ? "억양" : "" };
     }
     var st = API.useEndings ? endingStatement(text) : null;
@@ -441,6 +464,7 @@
     var e = API.useEndings ? endingQuestion(text) : null;
     if (e) return { question: true, by: "어미 " + e };
     if (r && r.question) return { question: true, by: "억양" };
+    if (r && r.front != null && r.front > API.whRise && startsWithWh(text)) return { question: true, by: "의문사 음높이" };
     return { question: false, by: r && r.rise != null ? "억양" : "" };
   }
   function punctuate(text, r) {
@@ -451,7 +475,7 @@
     return (API.addPeriod || isEnglish()) ? t + "." : t;
   }
 
-  var API = { version: "2026-11-16", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, addPeriod: false, rawAudio: false,
-              _pitchTrack: pitchTrack, _finalRise: finalRise, _segments: segments };
+  var API = { version: "2026-11-16", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1.75, addPeriod: false, rawAudio: false,
+              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, startsWithWh: startsWithWh, _segments: segments };
   global.HEARQ = API;
 })(window);
