@@ -32,13 +32,30 @@
   }
 
   // 아주 오래 켜 두면 글이 끝없이 커지니, 너무 길어지면 오래된 앞부분부터 지워요
+  let segs = [];
   function appendFinal(text) {
-    finalTranscript += text + ' ';
-    if (finalTranscript.length > 30000) {
-      const cut = finalTranscript.indexOf(' ', finalTranscript.length - 24000);
-      finalTranscript = cut > 0 ? finalTranscript.slice(cut + 1) : finalTranscript.slice(-24000);
-    }
+    segs.push(text);
+    let total = 0;
+    segs.forEach((x) => { total += x.length + 1; });
+    while (total > 30000 && segs.length > 1) { total -= segs.shift().length + 1; }
+    finalTranscript = segs.join(' ') + ' ';
   }
+  // 문장을 눌러서 ? 와 . 를 서로 바꿔요 (문장부호를 켰을 때만, 이 기기 안에서만 바뀌고 어디로도 보내지 않아요)
+  function flipMark(t) {
+    t = t.trim();
+    if (/\?$/.test(t)) return t.replace(/\?$/, '.');
+    if (/[.!,]$/.test(t)) return t.replace(/[.!,]$/, '?');
+    return t + '?';
+  }
+  captionBox.addEventListener('click', (e) => {
+    const el = e.target.closest ? e.target.closest('.seg') : null;
+    if (!el || !qmOn) return;
+    const i = Number(el.dataset.i);
+    if (segs[i] == null) return;
+    segs[i] = flipMark(segs[i]);
+    finalTranscript = segs.join(' ') + ' ';
+    showCaption();
+  });
   // 자막 상자: 길어지면 아래로 따라 내려가고, 위로 스크롤하면 지난 자막을 볼 수 있어요.
   // 위로 올려 둔 동안은 새 자막이 와도 위치를 그대로 두고, 다시 맨 아래로 내리면 따라가기를 이어요.
   let stickToBottom = true;
@@ -131,8 +148,24 @@
     return out;
   }
   function showCaption() {
-    const display = (finalTranscript + qmPending.join(' ') + ' ' + lastInterim).trim();
-    setTimeout(() => renderCaption(display), captionDelay);
+    setTimeout(() => {
+      const tail = (qmPending.join(' ') + ' ' + lastInterim).trim();
+      if (!segs.length && !tail) { renderCaption(''); return; }
+      let span = captionBox.querySelector('.caption-text');
+      if (!span) { captionBox.textContent = ''; span = document.createElement('span'); span.className = 'caption-text'; captionBox.appendChild(span); }
+      span.textContent = '';
+      segs.forEach((t, i) => {
+        const s = document.createElement('span');
+        s.className = qmOn ? 'seg editable' : 'seg';
+        s.dataset.i = String(i);
+        if (qmOn) s.title = T('hear.qm.tap');
+        s.textContent = t;
+        span.appendChild(s);
+        span.appendChild(document.createTextNode(' '));
+      });
+      if (tail) span.appendChild(document.createTextNode(tail));
+      if (stickToBottom) captionBox.scrollTop = captionBox.scrollHeight;
+    }, captionDelay);
   }
 
   function initRecognition() {
@@ -188,7 +221,7 @@
     if (!SpeechRecognition) return;
     if (!recognition) initRecognition();
     recognition.lang = lang;
-    finalTranscript = '';
+    finalTranscript = ''; segs = [];
     qmPending = []; qmMarks = []; lastInterim = '';
     listening = true;
     qmSync();

@@ -184,7 +184,8 @@ window.HearI18n = (function () {
       'hear.speed.slow': 'Slow', 'hear.speed.normal': 'Normal', 'hear.speed.fast': 'Fast',
       'hear.qm': 'Punctuation',
       'hear.qm.off': 'Off', 'hear.qm.on': 'On',
-      'hear.qm.note': "Adds ? . , to captions using the sentence ending and your voice pitch. Questions that start with who, what, or where can still be marked wrong, and a statement said with a rising voice can get a question mark. Your voice pitch is analyzed on your device and not stored.",
+      'hear.qm.tap': 'Tap to switch ? and .',
+      'hear.qm.note': "Adds ? . , to captions using the sentence ending and your voice pitch. Questions that start with who, what, or where can still be marked wrong, and a statement said with a rising voice can get a question mark. Tap a caption sentence to switch ? and . Your voice pitch is analyzed on your device and not stored.",
       'hear.deniedMic': 'Microphone access was denied. Please allow microphone access to use Live Hear.',
       'hear.listening': 'Listening…',
 
@@ -779,7 +780,8 @@ window.HearI18n = (function () {
       'hear.speed.slow': '느리게', 'hear.speed.normal': '보통', 'hear.speed.fast': '빠르게',
       'hear.qm': '문장부호',
       'hear.qm.off': '끄기', 'hear.qm.on': '켜기',
-      'hear.qm.note': '문장 끝말과 목소리 높낮이로 자막에 ? . , 를 붙여요. 영어는 대문자도 바꿔요. 누가·뭐·어디로 시작하는 질문은 물음표가 빠질 수 있고, 끝을 올려 말한 평서문에는 물음표가 붙을 수 있어요. 목소리 높낮이는 기기 안에서만 분석하고 저장하지 않아요.',
+      'hear.qm.tap': '눌러서 ? 와 . 바꾸기',
+      'hear.qm.note': '문장 끝말과 목소리 높낮이로 자막에 ? . , 를 붙여요. 영어는 대문자도 바꿔요. 누가·뭐·어디로 시작하는 질문은 물음표가 빠질 수 있고, 끝을 올려 말한 평서문에는 물음표가 붙을 수 있어요. 자막 문장을 누르면 ? 와 . 가 바뀌어요. 목소리 높낮이는 기기 안에서만 분석하고 저장하지 않아요.',
       'hear.deniedMic': '마이크 접근이 거부되었습니다. Live Hear를 사용하려면 마이크 접근을 허용해 주세요.',
       'hear.listening': '듣는 중…',
 
