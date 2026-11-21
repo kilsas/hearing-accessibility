@@ -676,14 +676,39 @@
     r._v3 = { text: text, mark: out, from: mark };
     return out;
   }
+  // ---------- (11월 22일) 끝 내림 규칙 (설명서 2026-11-22 최종본, 기본값 켜짐: 끄려면 주소에 ?fall=0) ----------
+  // 말끝을 올렸다가 끝에서 다시 크게 내리면(설득·알림 평서문에 많은 끝 억양) 진한 ? 대신 흐린 ? 를 붙여요.
+  // 숫자(0.25초, 0.04초, 4.5반음, 0.08초)는 2026-11-22 시험을 통과한 값이에요. 바꾸려면 새 화자·새 문장으로 다시 시험해야 해요.
+  var FALL_WIN = 0.25, FALL_END = 0.04, FALL_MIN = 4.5, FALL_PEAK_GAP = 0.08;
+  function finalFall(st, hop) {
+    var last = -1, i;
+    for (i = st.length - 1; i >= 0; i--) if (st[i] != null) { last = i; break; }
+    if (last < 0) return null;
+    var w = Math.round(FALL_WIN / hop), e = Math.round(FALL_END / hop), v = [];
+    for (i = Math.max(0, last - w); i <= last; i++) if (st[i] != null) v.push([i, st[i]]);
+    if (v.length < 5) return null;
+    var pk = v[0]; v.forEach(function (q) { if (q[1] > pk[1]) pk = q; });
+    var tail = v.filter(function (q) { return q[0] > last - e; }).map(function (q) { return q[1]; });
+    var endv = tail.reduce(function (a, b) { return a + b; }, 0) / tail.length;
+    return { fall: pk[1] - endv, peakToEnd: (last - pk[0]) * hop };
+  }
+  // 진한 ? 를 흐린 ? 로 낮출지
+  function fallDemote(text, r) {
+    if (!API.fallRuleOn || API.v3RuleOn || isEnglish() || !r || !r.st || r.rise == null) return false;
+    if (API.useEndings && (endingStatement(text) || endingQuestion(text))) return false;
+    var f = finalFall(r.st, r.hop);
+    return !!f && f.fall >= FALL_MIN && f.peakToEnd >= FALL_PEAK_GAP;
+  }
   function decide(text, r) {
     var d = decide0(text, r), m = v3Mark(text, r);
-    if (m == null) return d;
+    if (m == null) return (d.question && fallDemote(text, r)) ? { question: false, by: "끝 내림 규칙" } : d;
     return m === "?" ? d : { question: false, by: d.question ? "v3 규칙" : d.by };
   }
   function uncertain(text, r) {
     var m = v3Mark(text, r);
-    return m == null ? uncertain0(text, r) : m === "faint";
+    if (m != null) return m === "faint";
+    if (decide0(text, r).question) return fallDemote(text, r);   // 진한 ? 였다가 낮아진 문장은 흐린 ?
+    return uncertain0(text, r);
   }
   function punctuate(text, r) {
     var t = (text || "").replace(/\s+$/, "").replace(/[.?!]+$/, "");
@@ -693,10 +718,12 @@
     return (API.addPeriod || isEnglish()) ? t + "." : t;
   }
 
-  var API = { version: "2026-11-21-v3", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, probRuleOn: false, v3RuleOn: true, probFaint: 0.65, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
-              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, _finalFeatures: finalFeatures, _probFeatures: probFeatures, _v3Cues: v3Cues, _v3Reset: function () { v3RateHist = []; }, v3Prob: v3Prob, questionProb: questionProb, _syllables: syllables, finalRule: finalRule, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
-  // v3RuleOn은 2026-11-21 22시 폰 확인(?v3=1) 뒤 true로 바꿨어요. 끄려면 false로 되돌리거나 주소에 ?v3=0을 붙여요.
+  var API = { version: "2026-11-22-fall", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, probRuleOn: false, v3RuleOn: false, fallRuleOn: true, probFaint: 0.65, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
+              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, _finalFeatures: finalFeatures, _probFeatures: probFeatures, _v3Cues: v3Cues, _finalFall: finalFall, _v3Reset: function () { v3RateHist = []; }, v3Prob: v3Prob, questionProb: questionProb, _syllables: syllables, finalRule: finalRule, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
+  // v3RuleOn: 11월 21일 폰 확인 뒤 잠깐 켰다가, 이전 녹음 464개에서 질문을 더 놓쳐서 채택하지 않고 11월 22일에 다시 껐어요. 코드는 남겨 둬요.
   try { if (global.location && /[?&]v3=0(&|$)/.test(global.location.search || "")) API.v3RuleOn = false; } catch (e) {}
+  // 끝 내림 규칙: 주소 끝에 ?fall=1이면 이 탭에서만 켜고 ?fall=0이면 꺼요
+  try { if (global.location) { if (/[?&]fall=1(&|$)/.test(global.location.search || "")) API.fallRuleOn = true; if (/[?&]fall=0(&|$)/.test(global.location.search || "")) API.fallRuleOn = false; } } catch (e) {}
   // 시험용: 주소 끝에 ?prob=1을 붙이면 저장 없이 이 탭에서만 확률 규칙을 켜요
   try { if (global.location && /[?&]prob=1(&|$)/.test(global.location.search || "")) API.probRuleOn = true; if (global.location && /[?&]v3=1(&|$)/.test(global.location.search || "")) { API.v3RuleOn = true; API.probRuleOn = false; } } catch (e) {}
   global.HEARQ = API;
