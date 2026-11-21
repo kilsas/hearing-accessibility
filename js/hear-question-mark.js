@@ -177,9 +177,10 @@
 
   // ---------- (11월 21일) 끝 높이 규칙: 마지막 단어가 사용자 평소보다 얼마나 높고 어느 쪽으로 움직이는가 ----------
   // 기본값 꺼짐(finalRuleOn:false). 켜져 있어도 기준 음높이가 아직 없거나 유성 프레임이 모자라면 예전 규칙을 써요.
-  // 기준값 고정 기록 (2026-11-21): 녹음 464개(1~5차, 같은 화자의 다른 클립으로 기준 음높이 B)에서
-  // finalHeightHigh/Low를 -8~8반음, 0.5 간격으로 훑어 세 조건(평서문 진한 ? < 지금 규칙, 질문에 . ≤ 지금 규칙, 흐린 ? ≤ 30%)을
-  // 만족하는 105개 조합 중 흐린 ? 가 가장 적은 값(-4, -4)을 골랐어요. 시험(새 화자) 전에는 더 바꾸지 않아요. finalRuleOn은 시험을 통과하기 전까지 false예요.
+  // 기준값 기록 (2026-11-21, 설계서 11/21 수정판): 의문사 문장도 모양으로 나누는 표를 쓰고, 녹음 464개(1~5차, 같은 화자의 다른 클립으로 B)에서
+  // finalHeightHigh/Low를 -8~8반음, 0.5 간격(561개 조합)으로 훑었어요. 네 조건(평서문 진한 ? < 지금 규칙, 질문에 . ≤ 지금 규칙,
+  // 흐린 ? ≤ 30%, 평서문 . ≥ 지금 규칙)을 모두 만족한 조합은 0개였어요 (질문에 . 조건이 전부 실패: 최소 25개 > 13개).
+  // 그래서 고른 값이 없고, 아래 -4/-4는 자리만 채운 값이에요. 이 규칙은 켜지 않아요 (finalRuleOn: false).
   var BASE_SEC = 60, BASE_MIN = 10;
   var baseBuf = [];                       // { key, t, vals:[절대 반음], hop }
   function baseAdd(key, abs, hop) {
@@ -235,7 +236,6 @@
     var f = finalFeatures(r.abs, r.hop, r.B, syllables(text));
     if (!f) return null;
     var high = f.H >= API.finalHeightHigh && f.shape === "up";
-    if (startsWithWh(text)) return high ? "q" : "dim";
     if (high) return "q";
     if (f.H <= API.finalHeightLow || f.shape === "down") return "p";
     return "dim";
