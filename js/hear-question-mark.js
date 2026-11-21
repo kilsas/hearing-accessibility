@@ -193,7 +193,10 @@
   function baseline() {
     var cut = Date.now() - BASE_SEC * 1000, all = [], sec = 0;
     baseBuf.forEach(function (b) { if (b.t >= cut) { all = all.concat(b.vals); sec += b.vals.length * b.hop; } });
-    return (sec >= BASE_MIN) ? { B: median(all), sec: sec } : { B: null, sec: sec };
+    if (sec < BASE_MIN) return { B: null, sec: sec };
+    var B0 = median(all);   // 옥타브 보정: B의 1.7배보다 높은 값은 반으로, 0.6배보다 낮은 값은 두 배로 (설명서 2절)
+    var fixed = all.map(function (v) { var d = v - B0; return d > 9.18 ? v - 12 : (d < -8.84 ? v + 12 : v); });
+    return { B: median(fixed), sec: sec };
   }
   function syllables(text) {
     var t = text || "", ko = t.match(/[가-힣]/g);
@@ -239,6 +242,65 @@
     if (high) return "q";
     if (f.H <= API.finalHeightLow || f.shape === "down") return "p";
     return "dim";
+  }
+
+  // ---------- (11월 21일 채택) 질문일 확률 규칙: 지금 규칙이 "."를 붙이려 할 때만 흐린 ? 로 바꿔요 ----------
+  // 숫자는 설명서(2026-11-21 채택) 그대로예요. 바꾸려면 새 화자로 다시 시험해야 해요. 기본값 꺼짐(probRuleOn:false).
+  // 진한 ? 는 새로 만들지 않고, 지금 규칙이 붙인 ? 는 건드리지 않아요. 어미로 정해진 문장(-다, -습니다 등)도 그대로 둬요.
+  var P_MEAN = [4.190092, 1.603717, 2.090916, 0.752618, 3.221754];
+  var P_SCALE = [3.151557, 3.654453, 2.681317, 0.431491, 3.259518];
+  var P_COEF = [1.207373, 1.027762, 0.551870, 0.077167, 0.379591];
+  var P_INTERCEPT = 1.184394;
+  function questionProb(endRise, endLevel, whRise, hasWh) {
+    var x = [endRise, endLevel, hasWh ? whRise : 0, hasWh ? 1 : 0, hasWh ? endRise : 0], s = P_INTERCEPT;
+    for (var i = 0; i < 5; i++) s += P_COEF[i] * (x[i] - P_MEAN[i]) / P_SCALE[i];
+    return 1 / (1 + Math.exp(-s));
+  }
+  // 문장 하나의 값 (모두 반음). 못 재면 null (그러면 지금 규칙 그대로)
+  function probFeatures(abs, hop, B, text) {
+    if (!abs || B == null) return null;
+    var n = (text || "").match(/[가-힣]/g); n = n ? n.length : 0;
+    if (!n) return null;
+    var rel = [], i, j;
+    for (i = 0; i < abs.length; i++) rel.push(abs[i] == null ? null : abs[i] - B);
+    var c1 = rel.slice();
+    for (i = 0; i < rel.length; i++) {            // 7점 중간값에서 3반음 넘게 튀면 버려요
+      if (rel[i] == null) continue;
+      var nb = []; for (j = Math.max(0, i - 3); j <= Math.min(rel.length - 1, i + 3); j++) if (rel[j] != null) nb.push(rel[j]);
+      if (nb.length >= 3 && Math.abs(rel[i] - median(nb)) > 3) c1[i] = null;
+    }
+    var c2 = c1.slice();
+    for (i = 0; i < c1.length; i++) {             // 5점 중간값으로 다듬어요
+      if (c1[i] == null) continue;
+      var nb5 = []; for (j = Math.max(0, i - 2); j <= Math.min(c1.length - 1, i + 2); j++) if (c1[j] != null) nb5.push(c1[j]);
+      c2[i] = median(nb5);
+    }
+    var idx = []; for (i = 0; i < c2.length; i++) if (c2[i] != null) idx.push(i);
+    if (idx.length < 10) return null;             // 유성음 프레임 10개 미만이면 계산하지 않아요
+    var f0 = idx[0], f1 = idx[idx.length - 1], T = (f1 - f0 + 1) * hop;
+    var rt = function (k) { return (k - f0) * hop; };
+    var endVals = []; for (i = f1; i > f1 - Math.round(0.05 / hop) && i >= f0; i--) if (c2[i] != null) endVals.push(c2[i]);
+    if (!endVals.length) return null;
+    var endLevel = median(endVals);
+    var lowAfter = null; for (i = f0; i <= f1; i++) if (c2[i] != null && rt(i) >= 0.4 * T && (lowAfter == null || c2[i] < lowAfter)) lowAfter = c2[i];
+    if (lowAfter == null) return null;
+    var endRise = endLevel - lowAfter;
+    var whRise = 0, wEnd = 0.05 + T * 2 / n, win = [];
+    for (i = f0; i <= f1; i++) if (c2[i] != null && rt(i) >= 0.05 && rt(i) <= wEnd) win.push(i);
+    if (win.length >= 3) {
+      var pk = null, pi = -1; win.forEach(function (k) { if (pk == null || c2[k] > pk) { pk = c2[k]; pi = k; } });
+      var lo = null; win.forEach(function (k) { if (k <= pi && (lo == null || c2[k] < lo)) lo = c2[k]; });
+      whRise = pk - lo;
+    }
+    return { endRise: endRise, endLevel: endLevel, whRise: whRise, hasWh: startsWithWh(text) ? 1 : 0 };
+  }
+  // 지금 규칙이 "."를 붙일 문장에서 질문일 확률이 문턱 이상이면 true (흐린 ? 로 바꿔요)
+  function probFaint(text, r) {
+    if (!API.probRuleOn || isEnglish() || !r || r.B == null || !r.abs) return false;
+    if (API.useEndings && endingStatement(text)) return false;
+    var f = probFeatures(r.abs, r.hop, r.B, text);
+    if (!f) return false;
+    return questionProb(f.endRise, f.endLevel, f.whRise, f.hasWh) >= API.probFaint;
   }
 
   // 쉬는 구간(0.35초 이상)에서 나누기
@@ -541,6 +603,11 @@
   // (11월 19일) 확신 없는 물음표: 의문사로 시작하고, 질문 어미도 평서 어미도 없고, 말끝 상승이 애매한 구간(2반음 이상, 기준값 미만)이면
   // 진한 ? 대신 흐린 ? 를 붙여요. 구간은 시험 전에 정해 둔 값이고 464개 녹음을 보고 바꾸지 않았어요.
   function uncertain(text, r) {
+    if (uncertainOld(text, r)) return true;
+    if (decide(text, r).question) return false;
+    return probFaint(text, r);
+  }
+  function uncertainOld(text, r) {
     var fr0 = finalRule(text, r);
     if (fr0) { if (!isEnglish() && endingStatement(text)) return false; if (decide(text, r).question) return false; return fr0 === "dim"; }
     if (!r || r.rise == null) return false;
@@ -557,7 +624,9 @@
     return (API.addPeriod || isEnglish()) ? t + "." : t;
   }
 
-  var API = { version: "2026-11-16", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
-              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, _finalFeatures: finalFeatures, _syllables: syllables, finalRule: finalRule, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
+  var API = { version: "2026-11-21", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, probRuleOn: false, probFaint: 0.65, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
+              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, _finalFeatures: finalFeatures, _probFeatures: probFeatures, questionProb: questionProb, _syllables: syllables, finalRule: finalRule, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
+  // 시험용: 주소 끝에 ?prob=1을 붙이면 저장 없이 이 탭에서만 확률 규칙을 켜요
+  try { if (global.location && /[?&]prob=1(&|$)/.test(global.location.search || "")) API.probRuleOn = true; } catch (e) {}
   global.HEARQ = API;
 })(window);
