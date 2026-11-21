@@ -583,6 +583,14 @@
     if (isEnglish()) return /^(what|where|when|why|who|whom|whose|which|how)$/.test(w.toLowerCase().replace(/[^a-z]/g, ""));
     return KO_WH.test(w);
   }
+  // ---------- (11월 22일) 선택 질문 규칙 (설명서 2026-11-22 최종본, 기본값 켜짐: 끄려면 주소에 ?choice=0) ----------
+  // "했어 안 했어", "갈래 안 갈래", "먹을 거야 말 거야"처럼 끝나면 말끝 높이와 상관없이 질문이에요.
+  // 시험 C(처음 보는 5명)에서 질문 . 10 → 0, 평서문 영향 없음. 다른 문장 620개에서는 한 번도 걸리지 않았어요 (설명서 기록).
+  var CHOICE_Q = /(\S+)\s+안\s+\1$|거야\s+말\s+거야$/;
+  function choiceQuestion(text) {
+    var t = (text || "").replace(/[\s.?!,~…]+$/, "").replace(/,/g, " ").replace(/\s+/g, " ");
+    return CHOICE_Q.test(t) ? "선택 질문" : null;
+  }
   function decide0(text, r) {
     if (isEnglish()) {
       var en = API.useEndings ? englishQuestion(text) : null;
@@ -592,6 +600,7 @@
       if (r && r.front != null && r.front > API.whRise && startsWithWh(text)) return { question: true, by: "의문사 음높이" };
       return { question: false, by: r && r.rise != null ? "억양" : "" };
     }
+    if (API.useEndings && API.choiceRuleOn) { var cq = choiceQuestion(text); if (cq) return { question: true, by: cq }; }
     var st = API.useEndings ? endingStatement(text) : null;
     if (st) return { question: false, by: "어미 " + st };
     var e = API.useEndings ? endingQuestion(text) : null;
@@ -659,6 +668,7 @@
   function v3Adjust(mark, text, r, cues) {
     if (!API.v3RuleOn || isEnglish() || !r || r.rise == null || !cues) return mark;
     if (API.useEndings && (endingStatement(text) || endingQuestion(text))) return mark;
+    if (API.useEndings && API.choiceRuleOn && choiceQuestion(text)) return mark;
     var pf = (r.abs && r.B != null) ? probFeatures(r.abs, r.hop, r.B, text) : null;
     var p = v3Prob(r.rise, r.front, cues.whdb, cues.pause, cues.rate_n, startsWithWh(text), pf ? pf.endLevel : 0);
     if (mark === "?" && p < V3_T_DARK_TO_FAINT) return "faint";
@@ -696,6 +706,7 @@
   function fallDemote(text, r) {
     if (!API.fallRuleOn || API.v3RuleOn || isEnglish() || !r || !r.st || r.rise == null) return false;
     if (API.useEndings && (endingStatement(text) || endingQuestion(text))) return false;
+    if (API.useEndings && API.choiceRuleOn && choiceQuestion(text)) return false;
     var f = finalFall(r.st, r.hop);
     return !!f && f.fall >= FALL_MIN && f.peakToEnd >= FALL_PEAK_GAP;
   }
@@ -718,10 +729,12 @@
     return (API.addPeriod || isEnglish()) ? t + "." : t;
   }
 
-  var API = { version: "2026-11-22-fall", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, probRuleOn: false, v3RuleOn: false, fallRuleOn: true, probFaint: 0.65, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
-              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, _finalFeatures: finalFeatures, _probFeatures: probFeatures, _v3Cues: v3Cues, _finalFall: finalFall, _v3Reset: function () { v3RateHist = []; }, v3Prob: v3Prob, questionProb: questionProb, _syllables: syllables, finalRule: finalRule, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
+  var API = { version: "2026-11-22-choice", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, probRuleOn: false, v3RuleOn: false, fallRuleOn: true, choiceRuleOn: true, probFaint: 0.65, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
+              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, _finalFeatures: finalFeatures, _probFeatures: probFeatures, _v3Cues: v3Cues, _finalFall: finalFall, choiceQuestion: choiceQuestion, _v3Reset: function () { v3RateHist = []; }, v3Prob: v3Prob, questionProb: questionProb, _syllables: syllables, finalRule: finalRule, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
   // v3RuleOn: 11월 21일 폰 확인 뒤 잠깐 켰다가, 이전 녹음 464개에서 질문을 더 놓쳐서 채택하지 않고 11월 22일에 다시 껐어요. 코드는 남겨 둬요.
   try { if (global.location && /[?&]v3=0(&|$)/.test(global.location.search || "")) API.v3RuleOn = false; } catch (e) {}
+  // 선택 질문 규칙: 주소 끝에 ?choice=0이면 이 탭에서만 꺼요
+  try { if (global.location && /[?&]choice=0(&|$)/.test(global.location.search || "")) API.choiceRuleOn = false; } catch (e) {}
   // 끝 내림 규칙: 주소 끝에 ?fall=1이면 이 탭에서만 켜고 ?fall=0이면 꺼요
   try { if (global.location) { if (/[?&]fall=1(&|$)/.test(global.location.search || "")) API.fallRuleOn = true; if (/[?&]fall=0(&|$)/.test(global.location.search || "")) API.fallRuleOn = false; } } catch (e) {}
   // 시험용: 주소 끝에 ?prob=1을 붙이면 저장 없이 이 탭에서만 확률 규칙을 켜요
