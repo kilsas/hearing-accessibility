@@ -1,0 +1,721 @@
+﻿test_set,speaker,item,sentence,meaning,rules,mark
+B,S37,B13q,내일 시험 봐요?,질문,old rule,?
+B,S37,B03c,어디 숨었어요.,평서문,old rule,.
+B,S37,B16q,오늘 일찍 끝난대요?,질문,old rule,?
+B,S37,B15s,이거 마실래요.,평서,old rule,?
+B,S37,B17s,여기 앉아도 돼요.,평서,old rule,.
+B,S37,B01c,누가 가져갔어요.,평서문,old rule,.
+B,S37,B15q,이거 마실래요?,질문,old rule,?
+B,S37,B19s,동생 잠들었어요.,평서,old rule,?
+B,S37,B14s,밖에 추워요.,평서,old rule,.
+B,S37,B09,어떻게 만들었어요?,의문사,old rule,?
+B,S37,B05b,뭐 흘렸어요?,예/아니오,old rule,?
+B,S37,B20s,혼자 갈 수 있어요.,평서,old rule,.
+B,S37,B02a,뭐 봤어요?,의문사,old rule,?
+B,S37,B04a,누가 전화 받았어요?,의문사,old rule,?
+B,S37,B01b,누가 가져갔어요?,예/아니오,old rule,?
+B,S37,B06b,어디 들어갔어요?,예/아니오,old rule,?
+B,S37,B12,얼마예요?,의문사,old rule,?
+B,S37,B02b,뭐 봤어요?,예/아니오,old rule,?
+B,S37,B04c,누가 전화 받았어요.,평서문,old rule,?
+B,S37,B05c,뭐 흘렸어요.,평서문,old rule,.
+B,S37,B11,무슨 색 좋아해요?,의문사,old rule,?
+B,S37,B07,언제 도착해요?,의문사,old rule,?
+B,S37,B03a,어디 숨었어요?,의문사,old rule,?
+B,S37,B04b,누가 전화 받았어요?,예/아니오,old rule,?
+B,S37,B13s,내일 시험 봐요.,평서,old rule,.
+B,S37,B08,왜 웃어요?,의문사,old rule,?
+B,S37,B17q,여기 앉아도 돼요?,질문,old rule,?
+B,S37,B18s,지갑 두고 왔어요.,평서,old rule,?
+B,S37,B03b,어디 숨었어요?,예/아니오,old rule,?
+B,S37,B06c,어디 들어갔어요.,평서문,old rule,?
+B,S37,B10,몇 명 와요?,의문사,old rule,?
+B,S37,B01a,누가 가져갔어요?,의문사,old rule,?
+B,S37,B14q,밖에 추워요?,질문,old rule,?
+B,S37,B06a,어디 들어갔어요?,의문사,old rule,?
+B,S37,B16s,오늘 일찍 끝난대요.,평서,old rule,?
+B,S37,B19q,동생 잠들었어요?,질문,old rule,?
+B,S37,B02c,뭐 봤어요.,평서문,old rule,?
+B,S37,B18q,지갑 두고 왔어요?,질문,old rule,?
+B,S37,B20q,혼자 갈 수 있어요?,질문,old rule,?
+B,S37,B05a,뭐 흘렸어요?,의문사,old rule,?
+B,S38,B13s,내일 시험 봐요.,평서,old rule,.
+B,S38,B06b,어디 들어갔어요?,예/아니오,old rule,?
+B,S38,B01b,누가 가져갔어요?,예/아니오,old rule,?
+B,S38,B04c,누가 전화 받았어요.,평서문,old rule,?
+B,S38,B05b,뭐 흘렸어요?,예/아니오,old rule,?
+B,S38,B11,무슨 색 좋아해요?,의문사,old rule,?
+B,S38,B20q,혼자 갈 수 있어요?,질문,old rule,?
+B,S38,B19s,동생 잠들었어요.,평서,old rule,.
+B,S38,B10,몇 명 와요?,의문사,old rule,?
+B,S38,B05a,뭐 흘렸어요?,의문사,old rule,?
+B,S38,B19q,동생 잠들었어요?,질문,old rule,?
+B,S38,B17s,여기 앉아도 돼요.,평서,old rule,.
+B,S38,B02c,뭐 봤어요.,평서문,old rule,.
+B,S38,B14s,밖에 추워요.,평서,old rule,.
+B,S38,B15q,이거 마실래요?,질문,old rule,?
+B,S38,B01a,누가 가져갔어요?,의문사,old rule,?
+B,S38,B18q,지갑 두고 왔어요?,질문,old rule,?
+B,S38,B03c,어디 숨었어요.,평서문,old rule,.
+B,S38,B15s,이거 마실래요.,평서,old rule,.
+B,S38,B20s,혼자 갈 수 있어요.,평서,old rule,.
+B,S38,B03b,어디 숨었어요?,예/아니오,old rule,?
+B,S38,B01c,누가 가져갔어요.,평서문,old rule,?
+B,S38,B08,왜 웃어요?,의문사,old rule,?
+B,S38,B04b,누가 전화 받았어요?,예/아니오,old rule,?
+B,S38,B16s,오늘 일찍 끝난대요.,평서,old rule,.
+B,S38,B06a,어디 들어갔어요?,의문사,old rule,?
+B,S38,B02b,뭐 봤어요?,예/아니오,old rule,?
+B,S38,B04a,누가 전화 받았어요?,의문사,old rule,?
+B,S38,B18s,지갑 두고 왔어요.,평서,old rule,.
+B,S38,B02a,뭐 봤어요?,의문사,old rule,?
+B,S38,B07,언제 도착해요?,의문사,old rule,?
+B,S38,B13q,내일 시험 봐요?,질문,old rule,?
+B,S38,B06c,어디 들어갔어요.,평서문,old rule,?
+B,S38,B09,어떻게 만들었어요?,의문사,old rule,?
+B,S38,B14q,밖에 추워요?,질문,old rule,?
+B,S38,B05c,뭐 흘렸어요.,평서문,old rule,.
+B,S38,B16q,오늘 일찍 끝난대요?,질문,old rule,?
+B,S38,B03a,어디 숨었어요?,의문사,old rule,?
+B,S38,B12,얼마예요?,의문사,old rule,?
+B,S38,B17q,여기 앉아도 돼요?,질문,old rule,?
+B,S39,B02c,뭐 봤어요.,평서문,old rule,.
+B,S39,B01b,누가 가져갔어요?,예/아니오,old rule,?
+B,S39,B15q,이거 마실래요?,질문,old rule,?
+B,S39,B03c,어디 숨었어요.,평서문,old rule,?
+B,S39,B04b,누가 전화 받았어요?,예/아니오,old rule,?
+B,S39,B11,무슨 색 좋아해요?,의문사,old rule,?
+B,S39,B19s,동생 잠들었어요.,평서,old rule,.
+B,S39,B04c,누가 전화 받았어요.,평서문,old rule,.
+B,S39,B14s,밖에 추워요.,평서,old rule,.
+B,S39,B09,어떻게 만들었어요?,의문사,old rule,?
+B,S39,B06c,어디 들어갔어요.,평서문,old rule,.
+B,S39,B03a,어디 숨었어요?,의문사,old rule,?
+B,S39,B18s,지갑 두고 왔어요.,평서,old rule,.
+B,S39,B05b,뭐 흘렸어요?,예/아니오,old rule,?
+B,S39,B16s,오늘 일찍 끝난대요.,평서,old rule,?
+B,S39,B19q,동생 잠들었어요?,질문,old rule,?
+B,S39,B02b,뭐 봤어요?,예/아니오,old rule,?
+B,S39,B13s,내일 시험 봐요.,평서,old rule,?
+B,S39,B15s,이거 마실래요.,평서,old rule,?
+B,S39,B18q,지갑 두고 왔어요?,질문,old rule,?
+B,S39,B10,몇 명 와요?,의문사,old rule,?
+B,S39,B04a,누가 전화 받았어요?,의문사,old rule,?
+B,S39,B01c,누가 가져갔어요.,평서문,old rule,faint
+B,S39,B16q,오늘 일찍 끝난대요?,질문,old rule,?
+B,S39,B06a,어디 들어갔어요?,의문사,old rule,?
+B,S39,B17q,여기 앉아도 돼요?,질문,old rule,?
+B,S39,B07,언제 도착해요?,의문사,old rule,?
+B,S39,B08,왜 웃어요?,의문사,old rule,?
+B,S39,B20s,혼자 갈 수 있어요.,평서,old rule,.
+B,S39,B12,얼마예요?,의문사,old rule,?
+B,S39,B05a,뭐 흘렸어요?,의문사,old rule,?
+B,S39,B01a,누가 가져갔어요?,의문사,old rule,?
+B,S39,B03b,어디 숨었어요?,예/아니오,old rule,?
+B,S39,B20q,혼자 갈 수 있어요?,질문,old rule,?
+B,S39,B02a,뭐 봤어요?,의문사,old rule,?
+B,S39,B13q,내일 시험 봐요?,질문,old rule,?
+B,S39,B05c,뭐 흘렸어요.,평서문,old rule,.
+B,S39,B14q,밖에 추워요?,질문,old rule,?
+B,S39,B06b,어디 들어갔어요?,예/아니오,old rule,?
+B,S39,B17s,여기 앉아도 돼요.,평서,old rule,.
+B,S40,B13s,내일 시험 봐요.,평서,old rule,.
+B,S40,B17s,여기 앉아도 돼요.,평서,old rule,.
+B,S40,B19s,동생 잠들었어요.,평서,old rule,.
+B,S40,B04b,누가 전화 받았어요?,예/아니오,old rule,?
+B,S40,B07,언제 도착해요?,의문사,old rule,?
+B,S40,B01c,누가 가져갔어요.,평서문,old rule,.
+B,S40,B12,얼마예요?,의문사,old rule,?
+B,S40,B03a,어디 숨었어요?,의문사,old rule,?
+B,S40,B15q,이거 마실래요?,질문,old rule,?
+B,S40,B09,어떻게 만들었어요?,의문사,old rule,?
+B,S40,B01a,누가 가져갔어요?,의문사,old rule,?
+B,S40,B03b,어디 숨었어요?,예/아니오,old rule,?
+B,S40,B17q,여기 앉아도 돼요?,질문,old rule,?
+B,S40,B05a,뭐 흘렸어요?,의문사,old rule,?
+B,S40,B06a,어디 들어갔어요?,의문사,old rule,?
+B,S40,B10,몇 명 와요?,의문사,old rule,?
+B,S40,B15s,이거 마실래요.,평서,old rule,?
+B,S40,B14s,밖에 추워요.,평서,old rule,.
+B,S40,B16q,오늘 일찍 끝난대요?,질문,old rule,?
+B,S40,B02c,뭐 봤어요.,평서문,old rule,faint
+B,S40,B05c,뭐 흘렸어요.,평서문,old rule,.
+B,S40,B04a,누가 전화 받았어요?,의문사,old rule,?
+B,S40,B20s,혼자 갈 수 있어요.,평서,old rule,.
+B,S40,B03c,어디 숨었어요.,평서문,old rule,.
+B,S40,B01b,누가 가져갔어요?,예/아니오,old rule,?
+B,S40,B20q,혼자 갈 수 있어요?,질문,old rule,?
+B,S40,B16s,오늘 일찍 끝난대요.,평서,old rule,.
+B,S40,B14q,밖에 추워요?,질문,old rule,?
+B,S40,B04c,누가 전화 받았어요.,평서문,old rule,.
+B,S40,B02b,뭐 봤어요?,예/아니오,old rule,?
+B,S40,B08,왜 웃어요?,의문사,old rule,?
+B,S40,B11,무슨 색 좋아해요?,의문사,old rule,?
+B,S40,B19q,동생 잠들었어요?,질문,old rule,?
+B,S40,B06b,어디 들어갔어요?,예/아니오,old rule,?
+B,S40,B02a,뭐 봤어요?,의문사,old rule,?
+B,S40,B18s,지갑 두고 왔어요.,평서,old rule,.
+B,S40,B06c,어디 들어갔어요.,평서문,old rule,?
+B,S40,B05b,뭐 흘렸어요?,예/아니오,old rule,?
+B,S40,B13q,내일 시험 봐요?,질문,old rule,?
+B,S40,B18q,지갑 두고 왔어요?,질문,old rule,?
+B,S41,B06b,어디 들어갔어요?,예/아니오,old rule,?
+B,S41,B04a,누가 전화 받았어요?,의문사,old rule,?
+B,S41,B20q,혼자 갈 수 있어요?,질문,old rule,?
+B,S41,B17s,여기 앉아도 돼요.,평서,old rule,?
+B,S41,B01b,누가 가져갔어요?,예/아니오,old rule,?
+B,S41,B03a,어디 숨었어요?,의문사,old rule,?
+B,S41,B17q,여기 앉아도 돼요?,질문,old rule,?
+B,S41,B05c,뭐 흘렸어요.,평서문,old rule,.
+B,S41,B15s,이거 마실래요.,평서,old rule,.
+B,S41,B14s,밖에 추워요.,평서,old rule,.
+B,S41,B03b,어디 숨었어요?,예/아니오,old rule,?
+B,S41,B13s,내일 시험 봐요.,평서,old rule,?
+B,S41,B06c,어디 들어갔어요.,평서문,old rule,.
+B,S41,B19s,동생 잠들었어요.,평서,old rule,.
+B,S41,B16s,오늘 일찍 끝난대요.,평서,old rule,.
+B,S41,B09,어떻게 만들었어요?,의문사,old rule,?
+B,S41,B03c,어디 숨었어요.,평서문,old rule,.
+B,S41,B15q,이거 마실래요?,질문,old rule,?
+B,S41,B02a,뭐 봤어요?,의문사,old rule,?
+B,S41,B05a,뭐 흘렸어요?,의문사,old rule,?
+B,S41,B08,왜 웃어요?,의문사,old rule,?
+B,S41,B14q,밖에 추워요?,질문,old rule,?
+B,S41,B01c,누가 가져갔어요.,평서문,old rule,.
+B,S41,B16q,오늘 일찍 끝난대요?,질문,old rule,?
+B,S41,B06a,어디 들어갔어요?,의문사,old rule,?
+B,S41,B13q,내일 시험 봐요?,질문,old rule,?
+B,S41,B05b,뭐 흘렸어요?,예/아니오,old rule,?
+B,S41,B01a,누가 가져갔어요?,의문사,old rule,?
+B,S41,B19q,동생 잠들었어요?,질문,old rule,?
+B,S41,B18s,지갑 두고 왔어요.,평서,old rule,.
+B,S41,B12,얼마예요?,의문사,old rule,?
+B,S41,B20s,혼자 갈 수 있어요.,평서,old rule,.
+B,S41,B04b,누가 전화 받았어요?,예/아니오,old rule,?
+B,S41,B02c,뭐 봤어요.,평서문,old rule,.
+B,S41,B07,언제 도착해요?,의문사,old rule,?
+B,S41,B18q,지갑 두고 왔어요?,질문,old rule,?
+B,S41,B10,몇 명 와요?,의문사,old rule,?
+B,S41,B04c,누가 전화 받았어요.,평서문,old rule,.
+B,S41,B02b,뭐 봤어요?,예/아니오,old rule,?
+B,S41,B11,무슨 색 좋아해요?,의문사,old rule,?
+B,S42,B17s,여기 앉아도 돼요.,평서,old rule,.
+B,S42,B04b,누가 전화 받았어요?,예/아니오,old rule,?
+B,S42,B06a,어디 들어갔어요?,의문사,old rule,?
+B,S42,B02c,뭐 봤어요.,평서문,old rule,.
+B,S42,B13q,내일 시험 봐요?,질문,old rule,?
+B,S42,B15q,이거 마실래요?,질문,old rule,?
+B,S42,B01c,누가 가져갔어요.,평서문,old rule,.
+B,S42,B11,무슨 색 좋아해요?,의문사,old rule,?
+B,S42,B06b,어디 들어갔어요?,예/아니오,old rule,?
+B,S42,B03c,어디 숨었어요.,평서문,old rule,.
+B,S42,B05b,뭐 흘렸어요?,예/아니오,old rule,?
+B,S42,B02b,뭐 봤어요?,예/아니오,old rule,?
+B,S42,B15s,이거 마실래요.,평서,old rule,?
+B,S42,B19s,동생 잠들었어요.,평서,old rule,.
+B,S42,B08,왜 웃어요?,의문사,old rule,?
+B,S42,B01b,누가 가져갔어요?,예/아니오,old rule,?
+B,S42,B05a,뭐 흘렸어요?,의문사,old rule,?
+B,S42,B03a,어디 숨었어요?,의문사,old rule,?
+B,S42,B04a,누가 전화 받았어요?,의문사,old rule,?
+B,S42,B20s,혼자 갈 수 있어요.,평서,old rule,.
+B,S42,B12,얼마예요?,의문사,old rule,?
+B,S42,B10,몇 명 와요?,의문사,old rule,?
+B,S42,B07,언제 도착해요?,의문사,old rule,?
+B,S42,B02a,뭐 봤어요?,의문사,old rule,?
+B,S42,B20q,혼자 갈 수 있어요?,질문,old rule,?
+B,S42,B18q,지갑 두고 왔어요?,질문,old rule,?
+B,S42,B06c,어디 들어갔어요.,평서문,old rule,faint
+B,S42,B17q,여기 앉아도 돼요?,질문,old rule,?
+B,S42,B14s,밖에 추워요.,평서,old rule,.
+B,S42,B01a,누가 가져갔어요?,의문사,old rule,?
+B,S42,B04c,누가 전화 받았어요.,평서문,old rule,?
+B,S42,B18s,지갑 두고 왔어요.,평서,old rule,?
+B,S42,B16q,오늘 일찍 끝난대요?,질문,old rule,?
+B,S42,B19q,동생 잠들었어요?,질문,old rule,?
+B,S42,B09,어떻게 만들었어요?,의문사,old rule,?
+B,S42,B03b,어디 숨었어요?,예/아니오,old rule,?
+B,S42,B16s,오늘 일찍 끝난대요.,평서,old rule,?
+B,S42,B14q,밖에 추워요?,질문,old rule,?
+B,S42,B13s,내일 시험 봐요.,평서,old rule,?
+B,S42,B05c,뭐 흘렸어요.,평서문,old rule,faint
+B,S37,B13q,내일 시험 봐요?,질문,end-fall + choice rules on,?
+B,S37,B03c,어디 숨었어요.,평서문,end-fall + choice rules on,.
+B,S37,B16q,오늘 일찍 끝난대요?,질문,end-fall + choice rules on,?
+B,S37,B15s,이거 마실래요.,평서,end-fall + choice rules on,?
+B,S37,B17s,여기 앉아도 돼요.,평서,end-fall + choice rules on,.
+B,S37,B01c,누가 가져갔어요.,평서문,end-fall + choice rules on,.
+B,S37,B15q,이거 마실래요?,질문,end-fall + choice rules on,?
+B,S37,B19s,동생 잠들었어요.,평서,end-fall + choice rules on,?
+B,S37,B14s,밖에 추워요.,평서,end-fall + choice rules on,.
+B,S37,B09,어떻게 만들었어요?,의문사,end-fall + choice rules on,?
+B,S37,B05b,뭐 흘렸어요?,예/아니오,end-fall + choice rules on,?
+B,S37,B20s,혼자 갈 수 있어요.,평서,end-fall + choice rules on,.
+B,S37,B02a,뭐 봤어요?,의문사,end-fall + choice rules on,?
+B,S37,B04a,누가 전화 받았어요?,의문사,end-fall + choice rules on,?
+B,S37,B01b,누가 가져갔어요?,예/아니오,end-fall + choice rules on,?
+B,S37,B06b,어디 들어갔어요?,예/아니오,end-fall + choice rules on,?
+B,S37,B12,얼마예요?,의문사,end-fall + choice rules on,?
+B,S37,B02b,뭐 봤어요?,예/아니오,end-fall + choice rules on,?
+B,S37,B04c,누가 전화 받았어요.,평서문,end-fall + choice rules on,?
+B,S37,B05c,뭐 흘렸어요.,평서문,end-fall + choice rules on,.
+B,S37,B11,무슨 색 좋아해요?,의문사,end-fall + choice rules on,?
+B,S37,B07,언제 도착해요?,의문사,end-fall + choice rules on,?
+B,S37,B03a,어디 숨었어요?,의문사,end-fall + choice rules on,?
+B,S37,B04b,누가 전화 받았어요?,예/아니오,end-fall + choice rules on,?
+B,S37,B13s,내일 시험 봐요.,평서,end-fall + choice rules on,.
+B,S37,B08,왜 웃어요?,의문사,end-fall + choice rules on,?
+B,S37,B17q,여기 앉아도 돼요?,질문,end-fall + choice rules on,?
+B,S37,B18s,지갑 두고 왔어요.,평서,end-fall + choice rules on,faint
+B,S37,B03b,어디 숨었어요?,예/아니오,end-fall + choice rules on,?
+B,S37,B06c,어디 들어갔어요.,평서문,end-fall + choice rules on,?
+B,S37,B10,몇 명 와요?,의문사,end-fall + choice rules on,?
+B,S37,B01a,누가 가져갔어요?,의문사,end-fall + choice rules on,?
+B,S37,B14q,밖에 추워요?,질문,end-fall + choice rules on,?
+B,S37,B06a,어디 들어갔어요?,의문사,end-fall + choice rules on,?
+B,S37,B16s,오늘 일찍 끝난대요.,평서,end-fall + choice rules on,faint
+B,S37,B19q,동생 잠들었어요?,질문,end-fall + choice rules on,?
+B,S37,B02c,뭐 봤어요.,평서문,end-fall + choice rules on,?
+B,S37,B18q,지갑 두고 왔어요?,질문,end-fall + choice rules on,?
+B,S37,B20q,혼자 갈 수 있어요?,질문,end-fall + choice rules on,?
+B,S37,B05a,뭐 흘렸어요?,의문사,end-fall + choice rules on,faint
+B,S38,B13s,내일 시험 봐요.,평서,end-fall + choice rules on,.
+B,S38,B06b,어디 들어갔어요?,예/아니오,end-fall + choice rules on,?
+B,S38,B01b,누가 가져갔어요?,예/아니오,end-fall + choice rules on,?
+B,S38,B04c,누가 전화 받았어요.,평서문,end-fall + choice rules on,?
+B,S38,B05b,뭐 흘렸어요?,예/아니오,end-fall + choice rules on,?
+B,S38,B11,무슨 색 좋아해요?,의문사,end-fall + choice rules on,?
+B,S38,B20q,혼자 갈 수 있어요?,질문,end-fall + choice rules on,?
+B,S38,B19s,동생 잠들었어요.,평서,end-fall + choice rules on,.
+B,S38,B10,몇 명 와요?,의문사,end-fall + choice rules on,?
+B,S38,B05a,뭐 흘렸어요?,의문사,end-fall + choice rules on,?
+B,S38,B19q,동생 잠들었어요?,질문,end-fall + choice rules on,?
+B,S38,B17s,여기 앉아도 돼요.,평서,end-fall + choice rules on,.
+B,S38,B02c,뭐 봤어요.,평서문,end-fall + choice rules on,.
+B,S38,B14s,밖에 추워요.,평서,end-fall + choice rules on,.
+B,S38,B15q,이거 마실래요?,질문,end-fall + choice rules on,?
+B,S38,B01a,누가 가져갔어요?,의문사,end-fall + choice rules on,?
+B,S38,B18q,지갑 두고 왔어요?,질문,end-fall + choice rules on,?
+B,S38,B03c,어디 숨었어요.,평서문,end-fall + choice rules on,.
+B,S38,B15s,이거 마실래요.,평서,end-fall + choice rules on,.
+B,S38,B20s,혼자 갈 수 있어요.,평서,end-fall + choice rules on,.
+B,S38,B03b,어디 숨었어요?,예/아니오,end-fall + choice rules on,?
+B,S38,B01c,누가 가져갔어요.,평서문,end-fall + choice rules on,?
+B,S38,B08,왜 웃어요?,의문사,end-fall + choice rules on,?
+B,S38,B04b,누가 전화 받았어요?,예/아니오,end-fall + choice rules on,?
+B,S38,B16s,오늘 일찍 끝난대요.,평서,end-fall + choice rules on,.
+B,S38,B06a,어디 들어갔어요?,의문사,end-fall + choice rules on,?
+B,S38,B02b,뭐 봤어요?,예/아니오,end-fall + choice rules on,?
+B,S38,B04a,누가 전화 받았어요?,의문사,end-fall + choice rules on,?
+B,S38,B18s,지갑 두고 왔어요.,평서,end-fall + choice rules on,.
+B,S38,B02a,뭐 봤어요?,의문사,end-fall + choice rules on,?
+B,S38,B07,언제 도착해요?,의문사,end-fall + choice rules on,?
+B,S38,B13q,내일 시험 봐요?,질문,end-fall + choice rules on,?
+B,S38,B06c,어디 들어갔어요.,평서문,end-fall + choice rules on,?
+B,S38,B09,어떻게 만들었어요?,의문사,end-fall + choice rules on,?
+B,S38,B14q,밖에 추워요?,질문,end-fall + choice rules on,?
+B,S38,B05c,뭐 흘렸어요.,평서문,end-fall + choice rules on,.
+B,S38,B16q,오늘 일찍 끝난대요?,질문,end-fall + choice rules on,?
+B,S38,B03a,어디 숨었어요?,의문사,end-fall + choice rules on,?
+B,S38,B12,얼마예요?,의문사,end-fall + choice rules on,?
+B,S38,B17q,여기 앉아도 돼요?,질문,end-fall + choice rules on,?
+B,S39,B02c,뭐 봤어요.,평서문,end-fall + choice rules on,.
+B,S39,B01b,누가 가져갔어요?,예/아니오,end-fall + choice rules on,?
+B,S39,B15q,이거 마실래요?,질문,end-fall + choice rules on,?
+B,S39,B03c,어디 숨었어요.,평서문,end-fall + choice rules on,?
+B,S39,B04b,누가 전화 받았어요?,예/아니오,end-fall + choice rules on,?
+B,S39,B11,무슨 색 좋아해요?,의문사,end-fall + choice rules on,?
+B,S39,B19s,동생 잠들었어요.,평서,end-fall + choice rules on,.
+B,S39,B04c,누가 전화 받았어요.,평서문,end-fall + choice rules on,.
+B,S39,B14s,밖에 추워요.,평서,end-fall + choice rules on,.
+B,S39,B09,어떻게 만들었어요?,의문사,end-fall + choice rules on,?
+B,S39,B06c,어디 들어갔어요.,평서문,end-fall + choice rules on,.
+B,S39,B03a,어디 숨었어요?,의문사,end-fall + choice rules on,?
+B,S39,B18s,지갑 두고 왔어요.,평서,end-fall + choice rules on,.
+B,S39,B05b,뭐 흘렸어요?,예/아니오,end-fall + choice rules on,?
+B,S39,B16s,오늘 일찍 끝난대요.,평서,end-fall + choice rules on,?
+B,S39,B19q,동생 잠들었어요?,질문,end-fall + choice rules on,?
+B,S39,B02b,뭐 봤어요?,예/아니오,end-fall + choice rules on,?
+B,S39,B13s,내일 시험 봐요.,평서,end-fall + choice rules on,?
+B,S39,B15s,이거 마실래요.,평서,end-fall + choice rules on,?
+B,S39,B18q,지갑 두고 왔어요?,질문,end-fall + choice rules on,?
+B,S39,B10,몇 명 와요?,의문사,end-fall + choice rules on,?
+B,S39,B04a,누가 전화 받았어요?,의문사,end-fall + choice rules on,?
+B,S39,B01c,누가 가져갔어요.,평서문,end-fall + choice rules on,faint
+B,S39,B16q,오늘 일찍 끝난대요?,질문,end-fall + choice rules on,?
+B,S39,B06a,어디 들어갔어요?,의문사,end-fall + choice rules on,?
+B,S39,B17q,여기 앉아도 돼요?,질문,end-fall + choice rules on,?
+B,S39,B07,언제 도착해요?,의문사,end-fall + choice rules on,?
+B,S39,B08,왜 웃어요?,의문사,end-fall + choice rules on,?
+B,S39,B20s,혼자 갈 수 있어요.,평서,end-fall + choice rules on,.
+B,S39,B12,얼마예요?,의문사,end-fall + choice rules on,?
+B,S39,B05a,뭐 흘렸어요?,의문사,end-fall + choice rules on,?
+B,S39,B01a,누가 가져갔어요?,의문사,end-fall + choice rules on,?
+B,S39,B03b,어디 숨었어요?,예/아니오,end-fall + choice rules on,?
+B,S39,B20q,혼자 갈 수 있어요?,질문,end-fall + choice rules on,?
+B,S39,B02a,뭐 봤어요?,의문사,end-fall + choice rules on,?
+B,S39,B13q,내일 시험 봐요?,질문,end-fall + choice rules on,?
+B,S39,B05c,뭐 흘렸어요.,평서문,end-fall + choice rules on,.
+B,S39,B14q,밖에 추워요?,질문,end-fall + choice rules on,?
+B,S39,B06b,어디 들어갔어요?,예/아니오,end-fall + choice rules on,?
+B,S39,B17s,여기 앉아도 돼요.,평서,end-fall + choice rules on,.
+B,S40,B13s,내일 시험 봐요.,평서,end-fall + choice rules on,.
+B,S40,B17s,여기 앉아도 돼요.,평서,end-fall + choice rules on,.
+B,S40,B19s,동생 잠들었어요.,평서,end-fall + choice rules on,.
+B,S40,B04b,누가 전화 받았어요?,예/아니오,end-fall + choice rules on,?
+B,S40,B07,언제 도착해요?,의문사,end-fall + choice rules on,?
+B,S40,B01c,누가 가져갔어요.,평서문,end-fall + choice rules on,.
+B,S40,B12,얼마예요?,의문사,end-fall + choice rules on,?
+B,S40,B03a,어디 숨었어요?,의문사,end-fall + choice rules on,?
+B,S40,B15q,이거 마실래요?,질문,end-fall + choice rules on,?
+B,S40,B09,어떻게 만들었어요?,의문사,end-fall + choice rules on,?
+B,S40,B01a,누가 가져갔어요?,의문사,end-fall + choice rules on,?
+B,S40,B03b,어디 숨었어요?,예/아니오,end-fall + choice rules on,?
+B,S40,B17q,여기 앉아도 돼요?,질문,end-fall + choice rules on,?
+B,S40,B05a,뭐 흘렸어요?,의문사,end-fall + choice rules on,?
+B,S40,B06a,어디 들어갔어요?,의문사,end-fall + choice rules on,?
+B,S40,B10,몇 명 와요?,의문사,end-fall + choice rules on,?
+B,S40,B15s,이거 마실래요.,평서,end-fall + choice rules on,?
+B,S40,B14s,밖에 추워요.,평서,end-fall + choice rules on,.
+B,S40,B16q,오늘 일찍 끝난대요?,질문,end-fall + choice rules on,?
+B,S40,B02c,뭐 봤어요.,평서문,end-fall + choice rules on,faint
+B,S40,B05c,뭐 흘렸어요.,평서문,end-fall + choice rules on,.
+B,S40,B04a,누가 전화 받았어요?,의문사,end-fall + choice rules on,?
+B,S40,B20s,혼자 갈 수 있어요.,평서,end-fall + choice rules on,.
+B,S40,B03c,어디 숨었어요.,평서문,end-fall + choice rules on,.
+B,S40,B01b,누가 가져갔어요?,예/아니오,end-fall + choice rules on,?
+B,S40,B20q,혼자 갈 수 있어요?,질문,end-fall + choice rules on,?
+B,S40,B16s,오늘 일찍 끝난대요.,평서,end-fall + choice rules on,.
+B,S40,B14q,밖에 추워요?,질문,end-fall + choice rules on,?
+B,S40,B04c,누가 전화 받았어요.,평서문,end-fall + choice rules on,.
+B,S40,B02b,뭐 봤어요?,예/아니오,end-fall + choice rules on,?
+B,S40,B08,왜 웃어요?,의문사,end-fall + choice rules on,?
+B,S40,B11,무슨 색 좋아해요?,의문사,end-fall + choice rules on,?
+B,S40,B19q,동생 잠들었어요?,질문,end-fall + choice rules on,?
+B,S40,B06b,어디 들어갔어요?,예/아니오,end-fall + choice rules on,?
+B,S40,B02a,뭐 봤어요?,의문사,end-fall + choice rules on,?
+B,S40,B18s,지갑 두고 왔어요.,평서,end-fall + choice rules on,.
+B,S40,B06c,어디 들어갔어요.,평서문,end-fall + choice rules on,?
+B,S40,B05b,뭐 흘렸어요?,예/아니오,end-fall + choice rules on,?
+B,S40,B13q,내일 시험 봐요?,질문,end-fall + choice rules on,?
+B,S40,B18q,지갑 두고 왔어요?,질문,end-fall + choice rules on,?
+B,S41,B06b,어디 들어갔어요?,예/아니오,end-fall + choice rules on,?
+B,S41,B04a,누가 전화 받았어요?,의문사,end-fall + choice rules on,?
+B,S41,B20q,혼자 갈 수 있어요?,질문,end-fall + choice rules on,?
+B,S41,B17s,여기 앉아도 돼요.,평서,end-fall + choice rules on,?
+B,S41,B01b,누가 가져갔어요?,예/아니오,end-fall + choice rules on,?
+B,S41,B03a,어디 숨었어요?,의문사,end-fall + choice rules on,?
+B,S41,B17q,여기 앉아도 돼요?,질문,end-fall + choice rules on,?
+B,S41,B05c,뭐 흘렸어요.,평서문,end-fall + choice rules on,.
+B,S41,B15s,이거 마실래요.,평서,end-fall + choice rules on,.
+B,S41,B14s,밖에 추워요.,평서,end-fall + choice rules on,.
+B,S41,B03b,어디 숨었어요?,예/아니오,end-fall + choice rules on,?
+B,S41,B13s,내일 시험 봐요.,평서,end-fall + choice rules on,faint
+B,S41,B06c,어디 들어갔어요.,평서문,end-fall + choice rules on,.
+B,S41,B19s,동생 잠들었어요.,평서,end-fall + choice rules on,.
+B,S41,B16s,오늘 일찍 끝난대요.,평서,end-fall + choice rules on,.
+B,S41,B09,어떻게 만들었어요?,의문사,end-fall + choice rules on,?
+B,S41,B03c,어디 숨었어요.,평서문,end-fall + choice rules on,.
+B,S41,B15q,이거 마실래요?,질문,end-fall + choice rules on,?
+B,S41,B02a,뭐 봤어요?,의문사,end-fall + choice rules on,?
+B,S41,B05a,뭐 흘렸어요?,의문사,end-fall + choice rules on,?
+B,S41,B08,왜 웃어요?,의문사,end-fall + choice rules on,?
+B,S41,B14q,밖에 추워요?,질문,end-fall + choice rules on,?
+B,S41,B01c,누가 가져갔어요.,평서문,end-fall + choice rules on,.
+B,S41,B16q,오늘 일찍 끝난대요?,질문,end-fall + choice rules on,?
+B,S41,B06a,어디 들어갔어요?,의문사,end-fall + choice rules on,?
+B,S41,B13q,내일 시험 봐요?,질문,end-fall + choice rules on,?
+B,S41,B05b,뭐 흘렸어요?,예/아니오,end-fall + choice rules on,?
+B,S41,B01a,누가 가져갔어요?,의문사,end-fall + choice rules on,?
+B,S41,B19q,동생 잠들었어요?,질문,end-fall + choice rules on,?
+B,S41,B18s,지갑 두고 왔어요.,평서,end-fall + choice rules on,.
+B,S41,B12,얼마예요?,의문사,end-fall + choice rules on,?
+B,S41,B20s,혼자 갈 수 있어요.,평서,end-fall + choice rules on,.
+B,S41,B04b,누가 전화 받았어요?,예/아니오,end-fall + choice rules on,?
+B,S41,B02c,뭐 봤어요.,평서문,end-fall + choice rules on,.
+B,S41,B07,언제 도착해요?,의문사,end-fall + choice rules on,?
+B,S41,B18q,지갑 두고 왔어요?,질문,end-fall + choice rules on,?
+B,S41,B10,몇 명 와요?,의문사,end-fall + choice rules on,?
+B,S41,B04c,누가 전화 받았어요.,평서문,end-fall + choice rules on,.
+B,S41,B02b,뭐 봤어요?,예/아니오,end-fall + choice rules on,?
+B,S41,B11,무슨 색 좋아해요?,의문사,end-fall + choice rules on,?
+B,S42,B17s,여기 앉아도 돼요.,평서,end-fall + choice rules on,.
+B,S42,B04b,누가 전화 받았어요?,예/아니오,end-fall + choice rules on,?
+B,S42,B06a,어디 들어갔어요?,의문사,end-fall + choice rules on,?
+B,S42,B02c,뭐 봤어요.,평서문,end-fall + choice rules on,.
+B,S42,B13q,내일 시험 봐요?,질문,end-fall + choice rules on,?
+B,S42,B15q,이거 마실래요?,질문,end-fall + choice rules on,?
+B,S42,B01c,누가 가져갔어요.,평서문,end-fall + choice rules on,.
+B,S42,B11,무슨 색 좋아해요?,의문사,end-fall + choice rules on,?
+B,S42,B06b,어디 들어갔어요?,예/아니오,end-fall + choice rules on,?
+B,S42,B03c,어디 숨었어요.,평서문,end-fall + choice rules on,.
+B,S42,B05b,뭐 흘렸어요?,예/아니오,end-fall + choice rules on,?
+B,S42,B02b,뭐 봤어요?,예/아니오,end-fall + choice rules on,?
+B,S42,B15s,이거 마실래요.,평서,end-fall + choice rules on,?
+B,S42,B19s,동생 잠들었어요.,평서,end-fall + choice rules on,.
+B,S42,B08,왜 웃어요?,의문사,end-fall + choice rules on,?
+B,S42,B01b,누가 가져갔어요?,예/아니오,end-fall + choice rules on,?
+B,S42,B05a,뭐 흘렸어요?,의문사,end-fall + choice rules on,?
+B,S42,B03a,어디 숨었어요?,의문사,end-fall + choice rules on,?
+B,S42,B04a,누가 전화 받았어요?,의문사,end-fall + choice rules on,?
+B,S42,B20s,혼자 갈 수 있어요.,평서,end-fall + choice rules on,.
+B,S42,B12,얼마예요?,의문사,end-fall + choice rules on,?
+B,S42,B10,몇 명 와요?,의문사,end-fall + choice rules on,?
+B,S42,B07,언제 도착해요?,의문사,end-fall + choice rules on,?
+B,S42,B02a,뭐 봤어요?,의문사,end-fall + choice rules on,?
+B,S42,B20q,혼자 갈 수 있어요?,질문,end-fall + choice rules on,?
+B,S42,B18q,지갑 두고 왔어요?,질문,end-fall + choice rules on,?
+B,S42,B06c,어디 들어갔어요.,평서문,end-fall + choice rules on,faint
+B,S42,B17q,여기 앉아도 돼요?,질문,end-fall + choice rules on,?
+B,S42,B14s,밖에 추워요.,평서,end-fall + choice rules on,.
+B,S42,B01a,누가 가져갔어요?,의문사,end-fall + choice rules on,?
+B,S42,B04c,누가 전화 받았어요.,평서문,end-fall + choice rules on,faint
+B,S42,B18s,지갑 두고 왔어요.,평서,end-fall + choice rules on,?
+B,S42,B16q,오늘 일찍 끝난대요?,질문,end-fall + choice rules on,?
+B,S42,B19q,동생 잠들었어요?,질문,end-fall + choice rules on,?
+B,S42,B09,어떻게 만들었어요?,의문사,end-fall + choice rules on,?
+B,S42,B03b,어디 숨었어요?,예/아니오,end-fall + choice rules on,?
+B,S42,B16s,오늘 일찍 끝난대요.,평서,end-fall + choice rules on,?
+B,S42,B14q,밖에 추워요?,질문,end-fall + choice rules on,?
+B,S42,B13s,내일 시험 봐요.,평서,end-fall + choice rules on,faint
+B,S42,B05c,뭐 흘렸어요.,평서문,end-fall + choice rules on,faint
+C,S43,C09s,내일 비 온다.,평서,old rule,.
+C,S43,C03s,이거 먹을게.,평서,old rule,.
+C,S43,C05s,내가 전화할게.,평서,old rule,.
+C,S43,C02q,먼저 갈게?,질문,old rule,.
+C,S43,C01s,내가 해볼게.,평서,old rule,.
+C,S43,C03q,이거 먹을게?,질문,old rule,.
+C,S43,C08q,벌써 끝났다?,질문,old rule,.
+C,S43,C12,갈래 안 갈래?,질문,old rule,?
+C,S43,C14,선생님이 그렇게 말하라고 했어 안 했어?,질문,old rule,.
+C,S43,C01q,내가 해볼게?,질문,old rule,.
+C,S43,C07q,진짜 간다?,질문,old rule,.
+C,S43,C10s,걔가 이겼다.,평서,old rule,.
+C,S43,C05q,내가 전화할게?,질문,old rule,.
+C,S43,C08s,벌써 끝났다.,평서,old rule,.
+C,S43,C04s,창문 닫을게.,평서,old rule,.
+C,S43,C13,먹을 거야 말 거야?,질문,old rule,?
+C,S43,C07s,진짜 간다.,평서,old rule,.
+C,S43,C10q,걔가 이겼다?,질문,old rule,.
+C,S43,C04q,창문 닫을게?,질문,old rule,.
+C,S43,C06s,여기 앉을게.,평서,old rule,.
+C,S43,C02s,먼저 갈게.,평서,old rule,.
+C,S43,C09q,내일 비 온다?,질문,old rule,.
+C,S43,C11,숙제 했어 안 했어?,질문,old rule,.
+C,S43,C06q,여기 앉을게?,질문,old rule,.
+C,S44,C10s,걔가 이겼다.,평서,old rule,.
+C,S44,C07q,진짜 간다?,질문,old rule,.
+C,S44,C02s,먼저 갈게.,평서,old rule,.
+C,S44,C03q,이거 먹을게?,질문,old rule,.
+C,S44,C09s,내일 비 온다.,평서,old rule,.
+C,S44,C07s,진짜 간다.,평서,old rule,.
+C,S44,C06s,여기 앉을게.,평서,old rule,.
+C,S44,C04q,창문 닫을게?,질문,old rule,.
+C,S44,C01q,내가 해볼게?,질문,old rule,.
+C,S44,C13,먹을 거야 말 거야?,질문,old rule,?
+C,S44,C05s,내가 전화할게.,평서,old rule,.
+C,S44,C03s,이거 먹을게.,평서,old rule,.
+C,S44,C10q,걔가 이겼다?,질문,old rule,.
+C,S44,C06q,여기 앉을게?,질문,old rule,.
+C,S44,C11,숙제 했어 안 했어?,질문,old rule,.
+C,S44,C09q,내일 비 온다?,질문,old rule,.
+C,S44,C04s,창문 닫을게.,평서,old rule,.
+C,S44,C08s,벌써 끝났다.,평서,old rule,.
+C,S44,C05q,내가 전화할게?,질문,old rule,.
+C,S44,C02q,먼저 갈게?,질문,old rule,.
+C,S44,C01s,내가 해볼게.,평서,old rule,.
+C,S44,C12,갈래 안 갈래?,질문,old rule,?
+C,S44,C14,선생님이 그렇게 말하라고 했어 안 했어?,질문,old rule,.
+C,S44,C08q,벌써 끝났다?,질문,old rule,.
+C,S46,C09q,내일 비 온다?,질문,old rule,.
+C,S46,C06q,여기 앉을게?,질문,old rule,.
+C,S46,C10s,걔가 이겼다.,평서,old rule,.
+C,S46,C13,먹을 거야 말 거야?,질문,old rule,?
+C,S46,C04s,창문 닫을게.,평서,old rule,.
+C,S46,C10q,걔가 이겼다?,질문,old rule,.
+C,S46,C02q,먼저 갈게?,질문,old rule,.
+C,S46,C09s,내일 비 온다.,평서,old rule,.
+C,S46,C08q,벌써 끝났다?,질문,old rule,.
+C,S46,C07q,진짜 간다?,질문,old rule,.
+C,S46,C11,숙제 했어 안 했어?,질문,old rule,.
+C,S46,C05s,내가 전화할게.,평서,old rule,.
+C,S46,C03q,이거 먹을게?,질문,old rule,.
+C,S46,C14,선생님이 그렇게 말하라고 했어 안 했어?,질문,old rule,.
+C,S46,C06s,여기 앉을게.,평서,old rule,.
+C,S46,C05q,내가 전화할게?,질문,old rule,.
+C,S46,C04q,창문 닫을게?,질문,old rule,.
+C,S46,C01s,내가 해볼게.,평서,old rule,.
+C,S46,C08s,벌써 끝났다.,평서,old rule,.
+C,S46,C03s,이거 먹을게.,평서,old rule,.
+C,S46,C12,갈래 안 갈래?,질문,old rule,?
+C,S46,C01q,내가 해볼게?,질문,old rule,.
+C,S46,C07s,진짜 간다.,평서,old rule,.
+C,S46,C02s,먼저 갈게.,평서,old rule,.
+C,S47,C01q,내가 해볼게?,질문,old rule,.
+C,S47,C14,선생님이 그렇게 말하라고 했어 안 했어?,질문,old rule,.
+C,S47,C04q,창문 닫을게?,질문,old rule,.
+C,S47,C08s,벌써 끝났다.,평서,old rule,.
+C,S47,C05s,내가 전화할게.,평서,old rule,.
+C,S47,C06s,여기 앉을게.,평서,old rule,.
+C,S47,C10s,걔가 이겼다.,평서,old rule,.
+C,S47,C09s,내일 비 온다.,평서,old rule,.
+C,S47,C12,갈래 안 갈래?,질문,old rule,?
+C,S47,C07q,진짜 간다?,질문,old rule,.
+C,S47,C05q,내가 전화할게?,질문,old rule,.
+C,S47,C10q,걔가 이겼다?,질문,old rule,.
+C,S47,C09q,내일 비 온다?,질문,old rule,.
+C,S47,C07s,진짜 간다.,평서,old rule,.
+C,S47,C13,먹을 거야 말 거야?,질문,old rule,?
+C,S47,C08q,벌써 끝났다?,질문,old rule,.
+C,S47,C02s,먼저 갈게.,평서,old rule,.
+C,S47,C01s,내가 해볼게.,평서,old rule,.
+C,S47,C03s,이거 먹을게.,평서,old rule,.
+C,S47,C04s,창문 닫을게.,평서,old rule,.
+C,S47,C02q,먼저 갈게?,질문,old rule,.
+C,S47,C06q,여기 앉을게?,질문,old rule,.
+C,S47,C03q,이거 먹을게?,질문,old rule,.
+C,S47,C11,숙제 했어 안 했어?,질문,old rule,.
+C,S48,C07s,진짜 간다.,평서,old rule,.
+C,S48,C11,숙제 했어 안 했어?,질문,old rule,.
+C,S48,C01q,내가 해볼게?,질문,old rule,.
+C,S48,C14,선생님이 그렇게 말하라고 했어 안 했어?,질문,old rule,.
+C,S48,C05q,내가 전화할게?,질문,old rule,.
+C,S48,C10s,걔가 이겼다.,평서,old rule,.
+C,S48,C03s,이거 먹을게.,평서,old rule,.
+C,S48,C08q,벌써 끝났다?,질문,old rule,.
+C,S48,C02s,먼저 갈게.,평서,old rule,.
+C,S48,C03q,이거 먹을게?,질문,old rule,.
+C,S48,C09s,내일 비 온다.,평서,old rule,.
+C,S48,C06s,여기 앉을게.,평서,old rule,.
+C,S48,C13,먹을 거야 말 거야?,질문,old rule,?
+C,S48,C04s,창문 닫을게.,평서,old rule,.
+C,S48,C09q,내일 비 온다?,질문,old rule,.
+C,S48,C12,갈래 안 갈래?,질문,old rule,?
+C,S48,C01s,내가 해볼게.,평서,old rule,.
+C,S48,C10q,걔가 이겼다?,질문,old rule,.
+C,S48,C07q,진짜 간다?,질문,old rule,.
+C,S48,C02q,먼저 갈게?,질문,old rule,.
+C,S48,C06q,여기 앉을게?,질문,old rule,.
+C,S48,C08s,벌써 끝났다.,평서,old rule,.
+C,S48,C04q,창문 닫을게?,질문,old rule,.
+C,S48,C05s,내가 전화할게.,평서,old rule,.
+C,S43,C09s,내일 비 온다.,평서,end-fall + choice rules on,.
+C,S43,C03s,이거 먹을게.,평서,end-fall + choice rules on,.
+C,S43,C05s,내가 전화할게.,평서,end-fall + choice rules on,.
+C,S43,C02q,먼저 갈게?,질문,end-fall + choice rules on,.
+C,S43,C01s,내가 해볼게.,평서,end-fall + choice rules on,.
+C,S43,C03q,이거 먹을게?,질문,end-fall + choice rules on,.
+C,S43,C08q,벌써 끝났다?,질문,end-fall + choice rules on,.
+C,S43,C12,갈래 안 갈래?,질문,end-fall + choice rules on,?
+C,S43,C14,선생님이 그렇게 말하라고 했어 안 했어?,질문,end-fall + choice rules on,?
+C,S43,C01q,내가 해볼게?,질문,end-fall + choice rules on,.
+C,S43,C07q,진짜 간다?,질문,end-fall + choice rules on,.
+C,S43,C10s,걔가 이겼다.,평서,end-fall + choice rules on,.
+C,S43,C05q,내가 전화할게?,질문,end-fall + choice rules on,.
+C,S43,C08s,벌써 끝났다.,평서,end-fall + choice rules on,.
+C,S43,C04s,창문 닫을게.,평서,end-fall + choice rules on,.
+C,S43,C13,먹을 거야 말 거야?,질문,end-fall + choice rules on,?
+C,S43,C07s,진짜 간다.,평서,end-fall + choice rules on,.
+C,S43,C10q,걔가 이겼다?,질문,end-fall + choice rules on,.
+C,S43,C04q,창문 닫을게?,질문,end-fall + choice rules on,.
+C,S43,C06s,여기 앉을게.,평서,end-fall + choice rules on,.
+C,S43,C02s,먼저 갈게.,평서,end-fall + choice rules on,.
+C,S43,C09q,내일 비 온다?,질문,end-fall + choice rules on,.
+C,S43,C11,숙제 했어 안 했어?,질문,end-fall + choice rules on,?
+C,S43,C06q,여기 앉을게?,질문,end-fall + choice rules on,.
+C,S44,C10s,걔가 이겼다.,평서,end-fall + choice rules on,.
+C,S44,C07q,진짜 간다?,질문,end-fall + choice rules on,.
+C,S44,C02s,먼저 갈게.,평서,end-fall + choice rules on,.
+C,S44,C03q,이거 먹을게?,질문,end-fall + choice rules on,.
+C,S44,C09s,내일 비 온다.,평서,end-fall + choice rules on,.
+C,S44,C07s,진짜 간다.,평서,end-fall + choice rules on,.
+C,S44,C06s,여기 앉을게.,평서,end-fall + choice rules on,.
+C,S44,C04q,창문 닫을게?,질문,end-fall + choice rules on,.
+C,S44,C01q,내가 해볼게?,질문,end-fall + choice rules on,.
+C,S44,C13,먹을 거야 말 거야?,질문,end-fall + choice rules on,?
+C,S44,C05s,내가 전화할게.,평서,end-fall + choice rules on,.
+C,S44,C03s,이거 먹을게.,평서,end-fall + choice rules on,.
+C,S44,C10q,걔가 이겼다?,질문,end-fall + choice rules on,.
+C,S44,C06q,여기 앉을게?,질문,end-fall + choice rules on,.
+C,S44,C11,숙제 했어 안 했어?,질문,end-fall + choice rules on,?
+C,S44,C09q,내일 비 온다?,질문,end-fall + choice rules on,.
+C,S44,C04s,창문 닫을게.,평서,end-fall + choice rules on,.
+C,S44,C08s,벌써 끝났다.,평서,end-fall + choice rules on,.
+C,S44,C05q,내가 전화할게?,질문,end-fall + choice rules on,.
+C,S44,C02q,먼저 갈게?,질문,end-fall + choice rules on,.
+C,S44,C01s,내가 해볼게.,평서,end-fall + choice rules on,.
+C,S44,C12,갈래 안 갈래?,질문,end-fall + choice rules on,?
+C,S44,C14,선생님이 그렇게 말하라고 했어 안 했어?,질문,end-fall + choice rules on,?
+C,S44,C08q,벌써 끝났다?,질문,end-fall + choice rules on,.
+C,S46,C09q,내일 비 온다?,질문,end-fall + choice rules on,.
+C,S46,C06q,여기 앉을게?,질문,end-fall + choice rules on,.
+C,S46,C10s,걔가 이겼다.,평서,end-fall + choice rules on,.
+C,S46,C13,먹을 거야 말 거야?,질문,end-fall + choice rules on,?
+C,S46,C04s,창문 닫을게.,평서,end-fall + choice rules on,.
+C,S46,C10q,걔가 이겼다?,질문,end-fall + choice rules on,.
+C,S46,C02q,먼저 갈게?,질문,end-fall + choice rules on,.
+C,S46,C09s,내일 비 온다.,평서,end-fall + choice rules on,.
+C,S46,C08q,벌써 끝났다?,질문,end-fall + choice rules on,.
+C,S46,C07q,진짜 간다?,질문,end-fall + choice rules on,.
+C,S46,C11,숙제 했어 안 했어?,질문,end-fall + choice rules on,?
+C,S46,C05s,내가 전화할게.,평서,end-fall + choice rules on,.
+C,S46,C03q,이거 먹을게?,질문,end-fall + choice rules on,.
+C,S46,C14,선생님이 그렇게 말하라고 했어 안 했어?,질문,end-fall + choice rules on,?
+C,S46,C06s,여기 앉을게.,평서,end-fall + choice rules on,.
+C,S46,C05q,내가 전화할게?,질문,end-fall + choice rules on,.
+C,S46,C04q,창문 닫을게?,질문,end-fall + choice rules on,.
+C,S46,C01s,내가 해볼게.,평서,end-fall + choice rules on,.
+C,S46,C08s,벌써 끝났다.,평서,end-fall + choice rules on,.
+C,S46,C03s,이거 먹을게.,평서,end-fall + choice rules on,.
+C,S46,C12,갈래 안 갈래?,질문,end-fall + choice rules on,?
+C,S46,C01q,내가 해볼게?,질문,end-fall + choice rules on,.
+C,S46,C07s,진짜 간다.,평서,end-fall + choice rules on,.
+C,S46,C02s,먼저 갈게.,평서,end-fall + choice rules on,.
+C,S47,C01q,내가 해볼게?,질문,end-fall + choice rules on,.
+C,S47,C14,선생님이 그렇게 말하라고 했어 안 했어?,질문,end-fall + choice rules on,?
+C,S47,C04q,창문 닫을게?,질문,end-fall + choice rules on,.
+C,S47,C08s,벌써 끝났다.,평서,end-fall + choice rules on,.
+C,S47,C05s,내가 전화할게.,평서,end-fall + choice rules on,.
+C,S47,C06s,여기 앉을게.,평서,end-fall + choice rules on,.
+C,S47,C10s,걔가 이겼다.,평서,end-fall + choice rules on,.
+C,S47,C09s,내일 비 온다.,평서,end-fall + choice rules on,.
+C,S47,C12,갈래 안 갈래?,질문,end-fall + choice rules on,?
+C,S47,C07q,진짜 간다?,질문,end-fall + choice rules on,.
+C,S47,C05q,내가 전화할게?,질문,end-fall + choice rules on,.
+C,S47,C10q,걔가 이겼다?,질문,end-fall + choice rules on,.
+C,S47,C09q,내일 비 온다?,질문,end-fall + choice rules on,.
+C,S47,C07s,진짜 간다.,평서,end-fall + choice rules on,.
+C,S47,C13,먹을 거야 말 거야?,질문,end-fall + choice rules on,?
+C,S47,C08q,벌써 끝났다?,질문,end-fall + choice rules on,.
+C,S47,C02s,먼저 갈게.,평서,end-fall + choice rules on,.
+C,S47,C01s,내가 해볼게.,평서,end-fall + choice rules on,.
+C,S47,C03s,이거 먹을게.,평서,end-fall + choice rules on,.
+C,S47,C04s,창문 닫을게.,평서,end-fall + choice rules on,.
+C,S47,C02q,먼저 갈게?,질문,end-fall + choice rules on,.
+C,S47,C06q,여기 앉을게?,질문,end-fall + choice rules on,.
+C,S47,C03q,이거 먹을게?,질문,end-fall + choice rules on,.
+C,S47,C11,숙제 했어 안 했어?,질문,end-fall + choice rules on,?
+C,S48,C07s,진짜 간다.,평서,end-fall + choice rules on,.
+C,S48,C11,숙제 했어 안 했어?,질문,end-fall + choice rules on,?
+C,S48,C01q,내가 해볼게?,질문,end-fall + choice rules on,.
+C,S48,C14,선생님이 그렇게 말하라고 했어 안 했어?,질문,end-fall + choice rules on,?
+C,S48,C05q,내가 전화할게?,질문,end-fall + choice rules on,.
+C,S48,C10s,걔가 이겼다.,평서,end-fall + choice rules on,.
+C,S48,C03s,이거 먹을게.,평서,end-fall + choice rules on,.
+C,S48,C08q,벌써 끝났다?,질문,end-fall + choice rules on,.
+C,S48,C02s,먼저 갈게.,평서,end-fall + choice rules on,.
+C,S48,C03q,이거 먹을게?,질문,end-fall + choice rules on,.
+C,S48,C09s,내일 비 온다.,평서,end-fall + choice rules on,.
+C,S48,C06s,여기 앉을게.,평서,end-fall + choice rules on,.
+C,S48,C13,먹을 거야 말 거야?,질문,end-fall + choice rules on,?
+C,S48,C04s,창문 닫을게.,평서,end-fall + choice rules on,.
+C,S48,C09q,내일 비 온다?,질문,end-fall + choice rules on,.
+C,S48,C12,갈래 안 갈래?,질문,end-fall + choice rules on,?
+C,S48,C01s,내가 해볼게.,평서,end-fall + choice rules on,.
+C,S48,C10q,걔가 이겼다?,질문,end-fall + choice rules on,.
+C,S48,C07q,진짜 간다?,질문,end-fall + choice rules on,.
+C,S48,C02q,먼저 갈게?,질문,end-fall + choice rules on,.
+C,S48,C06q,여기 앉을게?,질문,end-fall + choice rules on,.
+C,S48,C08s,벌써 끝났다.,평서,end-fall + choice rules on,.
+C,S48,C04q,창문 닫을게?,질문,end-fall + choice rules on,.
+C,S48,C05s,내가 전화할게.,평서,end-fall + choice rules on,.
