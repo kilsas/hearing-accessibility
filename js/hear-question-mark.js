@@ -296,7 +296,7 @@
   }
   // 지금 규칙이 "."를 붙일 문장에서 질문일 확률이 문턱 이상이면 true (흐린 ? 로 바꿔요)
   function probFaint(text, r) {
-    if (!API.probRuleOn || isEnglish() || !r || r.B == null || !r.abs) return false;
+    if (!API.probRuleOn || API.v3RuleOn || isEnglish() || !r || r.B == null || !r.abs) return false;
     if (API.useEndings && endingStatement(text)) return false;
     var f = probFeatures(r.abs, r.hop, r.B, text);
     if (!f) return false;
@@ -430,6 +430,7 @@
     try { if (node) node.disconnect(); if (src) src.disconnect(); if (stream) stream.getTracks().forEach(function (t) { t.onended = null; t.stop(); }); if (ctx) ctx.close(); } catch (e) {}
     ctx = stream = node = src = null; wpos = 0; filled = 0; total = 0; lastChunk = 0;
     baseBuf = [];   // 기준 음높이는 세션이 끝나면 지워요
+    v3RateHist = [];   // 말 빠르기 기록도 지워요
   }
 
   // 마지막 3초에서 가장 최근에 끝난 말 조각을 찾아 말끝 상승을 재요
@@ -445,7 +446,7 @@
     var bl = baseline(), key = (total - x.length + sg[0]) + ":" + seg.length;   // 같은 말을 두 번 세지 않게 위치로 구분
     baseAdd(key, pt.abs, pt.hop);
     if (!fr) return { rise: null, question: false, reason: "음높이를 못 찾았어요", audio: seg, st: pt.st, abs: pt.abs, hop: pt.hop, B: bl.B };
-    return { rise: fr.rise, front: frontRise(pt.st, pt.hop), question: fr.rise >= API.threshold, reason: "", audio: seg, st: pt.st, abs: pt.abs, hop: pt.hop, B: bl.B, w0: fr.w0, last: fr.last };
+    return { rise: fr.rise, front: frontRise(pt.st, pt.hop), question: fr.rise >= API.threshold, reason: "", audio: seg, st: pt.st, abs: pt.abs, hop: pt.hop, B: bl.B, w0: fr.w0, last: fr.last, key: key };
   }
   // 문장 끝 어미만 봐도 질문인 게 확실한 경우 (예: 먹었니, 가냐, 하나요, 합니까, 할까, 인가요)
   // "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰이는 어미는 여기서 정하지 않고 음높이로 정해요.
@@ -582,7 +583,7 @@
     if (isEnglish()) return /^(what|where|when|why|who|whom|whose|which|how)$/.test(w.toLowerCase().replace(/[^a-z]/g, ""));
     return KO_WH.test(w);
   }
-  function decide(text, r) {
+  function decide0(text, r) {
     if (isEnglish()) {
       var en = API.useEndings ? englishQuestion(text) : null;
       if (en) return { question: true, by: en };
@@ -602,19 +603,87 @@
   }
   // (11월 19일) 확신 없는 물음표: 의문사로 시작하고, 질문 어미도 평서 어미도 없고, 말끝 상승이 애매한 구간(2반음 이상, 기준값 미만)이면
   // 진한 ? 대신 흐린 ? 를 붙여요. 구간은 시험 전에 정해 둔 값이고 464개 녹음을 보고 바꾸지 않았어요.
-  function uncertain(text, r) {
+  function uncertain0(text, r) {
     if (uncertainOld(text, r)) return true;
-    if (decide(text, r).question) return false;
+    if (decide0(text, r).question) return false;
     return probFaint(text, r);
   }
   function uncertainOld(text, r) {
     var fr0 = finalRule(text, r);
-    if (fr0) { if (!isEnglish() && endingStatement(text)) return false; if (decide(text, r).question) return false; return fr0 === "dim"; }
+    if (fr0) { if (!isEnglish() && endingStatement(text)) return false; if (decide0(text, r).question) return false; return fr0 === "dim"; }
     if (!r || r.rise == null) return false;
     if (!startsWithWh(text)) return false;
-    var d = decide(text, r);
+    var d = decide0(text, r);
     if (d.question || (API.useEndings && !isEnglish() && endingStatement(text))) return false;
     return r.rise >= API.uncertainLo && r.rise < API.threshold;
+  }
+  // ---------- (11월 21일) 규칙 v3: 의문사 평서문 가려내기 (설명서 v3, 기본값 꺼짐) ----------
+  // 숫자와 v3Cues 계산은 설명서 그대로예요. 바꾸려면 새 화자로 다시 시험해야 해요.
+  // 지금 규칙이 정한 표시(진한 ? / 흐린 ? / 없음)를 조금만 고쳐요. 진한 ? 는 새로 만들지 않고, 어미로 정해진 문장과 영어에는 적용하지 않아요.
+  var V3_MEAN = [4.026938, 3.835414, 1.457259, 0.079522, 0.992845, 0.752957, 0.906209];
+  var V3_SCALE = [4.218794, 3.706872, 3.196214, 0.072920, 0.142255, 0.431292, 4.295128];
+  var V3_COEF = [2.910399, -0.184643, 0.202073, 0.037644, 0.693631, 0.553165, 1.460730];
+  var V3_INTERCEPT = 0.769450;
+  var V3_T_DARK_TO_FAINT = 0.425, V3_T_FAINT_TO_NONE = 0.35, V3_T_NONE_TO_FAINT = 0.50;
+  var v3RateHist = [];   // 이 세션에서 말한 문장들의 { key, rate: 길이 ÷ 음절수 }. 세션이 끝나면(stop) 비워요. 저장하지 않아요
+  function v3Cues(seg, sr, pt, text, key) {
+    var m = (text || "").match(/[가-힣]/g), n = m ? m.length : 0;
+    if (!n || !seg || !seg.length) return null;
+    var T = seg.length / sr, wend = T * 2 / n + 0.05, hop = 0.01;
+    var N = Math.round(0.043 * sr), Hs = Math.round(hop * sr), db = [], s, i;
+    for (s = 0; s + N <= seg.length; s += Hs) {
+      var e = 0;
+      for (i = 0; i < N; i++) { var w = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (N - 1)); e += Math.pow(seg[s + i] * w, 2); }
+      db.push({ t: (s + N / 2) / sr, v: 10 * Math.log10(e / N + 1e-12) });
+    }
+    var f = [], r = [];
+    db.forEach(function (d) { (d.t <= wend ? f : r).push(d.v); });
+    var mean = function (a) { var t = 0; a.forEach(function (v) { t += v; }); return t / a.length; };
+    var whdb = (f.length && r.length) ? mean(f) - mean(r) : 0;
+    var vt = []; (pt.abs || []).forEach(function (v, k) { if (v != null) vt.push(k * pt.hop); });
+    var pause = 0;
+    for (i = 0; i + 1 < vt.length; i++) if (vt[i] >= 0.1 * T && vt[i] <= 0.6 * T) pause = Math.max(pause, vt[i + 1] - vt[i]);
+    var rate = T / n;
+    var prev = v3RateHist.filter(function (h) { return key == null || h.key !== key; }).slice(-30).map(function (h) { return h.rate; });
+    var md = prev.length >= 5 ? median(prev) : null;      // 지금 문장은 기준에 안 들어가요
+    var rate_n = md ? rate / md : 1.0;
+    if (key == null || !v3RateHist.some(function (h) { return h.key === key; })) v3RateHist.push({ key: key == null ? Math.random() : key, rate: rate });   // 같은 문장은 한 번만 기록
+    return { whdb: whdb, pause: pause, rate_n: rate_n };
+  }
+  function v3Prob(rise, front, whdb, pause, rate_n, hasWh, endLevel) {
+    var h = hasWh ? 1 : 0, x = [rise, (front || 0) * h, whdb * h, pause * h, rate_n, h, endLevel], s = V3_INTERCEPT;
+    for (var i = 0; i < 7; i++) s += V3_COEF[i] * (x[i] - V3_MEAN[i]) / V3_SCALE[i];
+    return 1 / (1 + Math.exp(-s));
+  }
+  // mark: 지금 규칙이 정한 표시 "?", "faint", "none"
+  function v3Adjust(mark, text, r, cues) {
+    if (!API.v3RuleOn || isEnglish() || !r || r.rise == null || !cues) return mark;
+    if (API.useEndings && (endingStatement(text) || endingQuestion(text))) return mark;
+    var pf = (r.abs && r.B != null) ? probFeatures(r.abs, r.hop, r.B, text) : null;
+    var p = v3Prob(r.rise, r.front, cues.whdb, cues.pause, cues.rate_n, startsWithWh(text), pf ? pf.endLevel : 0);
+    if (mark === "?" && p < V3_T_DARK_TO_FAINT) return "faint";
+    if (mark === "faint" && p < V3_T_FAINT_TO_NONE) return "none";
+    if (mark === "none" && p >= V3_T_NONE_TO_FAINT) return "faint";
+    return mark;
+  }
+  // 이 문장(text)에 대한 최종 표시. 같은 r와 text는 한 번만 계산해요 (rate 기록이 두 번 쌓이지 않게)
+  function v3Mark(text, r) {
+    if (!API.v3RuleOn || isEnglish() || !r || r.rise == null || !r.audio) return null;
+    if (r._v3 && r._v3.text === text) return r._v3.mark;
+    var d = decide0(text, r), mark = d.question ? "?" : (uncertain0(text, r) ? "faint" : "none");
+    var cues = v3Cues(r.audio, SR, { abs: r.abs, hop: r.hop }, text, r.key);
+    var out = v3Adjust(mark, text, r, cues);
+    r._v3 = { text: text, mark: out, from: mark };
+    return out;
+  }
+  function decide(text, r) {
+    var d = decide0(text, r), m = v3Mark(text, r);
+    if (m == null) return d;
+    return m === "?" ? d : { question: false, by: d.question ? "v3 규칙" : d.by };
+  }
+  function uncertain(text, r) {
+    var m = v3Mark(text, r);
+    return m == null ? uncertain0(text, r) : m === "faint";
   }
   function punctuate(text, r) {
     var t = (text || "").replace(/\s+$/, "").replace(/[.?!]+$/, "");
@@ -624,9 +693,9 @@
     return (API.addPeriod || isEnglish()) ? t + "." : t;
   }
 
-  var API = { version: "2026-11-21", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, probRuleOn: false, probFaint: 0.65, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
-              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, _finalFeatures: finalFeatures, _probFeatures: probFeatures, questionProb: questionProb, _syllables: syllables, finalRule: finalRule, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
+  var API = { version: "2026-11-21-v3", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, probRuleOn: false, v3RuleOn: false, probFaint: 0.65, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
+              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, _finalFeatures: finalFeatures, _probFeatures: probFeatures, _v3Cues: v3Cues, _v3Reset: function () { v3RateHist = []; }, v3Prob: v3Prob, questionProb: questionProb, _syllables: syllables, finalRule: finalRule, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
   // 시험용: 주소 끝에 ?prob=1을 붙이면 저장 없이 이 탭에서만 확률 규칙을 켜요
-  try { if (global.location && /[?&]prob=1(&|$)/.test(global.location.search || "")) API.probRuleOn = true; } catch (e) {}
+  try { if (global.location && /[?&]prob=1(&|$)/.test(global.location.search || "")) API.probRuleOn = true; if (global.location && /[?&]v3=1(&|$)/.test(global.location.search || "")) { API.v3RuleOn = true; API.probRuleOn = false; } } catch (e) {}
   global.HEARQ = API;
 })(window);
