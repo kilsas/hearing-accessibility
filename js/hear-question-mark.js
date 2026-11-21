@@ -138,7 +138,7 @@
     var vals = path.filter(function (vp) { return vp != null; });
     var med = median(vals);
     var stv = path.map(function (vp) { return vp == null ? null : vp - med; });
-    return { st: stv, hop: P.hop };
+    return { st: stv, hop: P.hop, abs: path, med: med };
   }
 
   // 말끝 상승: 마지막 100ms 안의 높은 쪽(90번째 백분위) - 그 앞 100~500ms 구간의 낮은 쪽(10번째 백분위)
@@ -173,6 +173,72 @@
     var lo = null;
     for (i = first; i <= pi; i++) if (st[i] != null && (lo == null || st[i] < lo)) lo = st[i];
     return pk - lo;
+  }
+
+  // ---------- (11월 21일) 끝 높이 규칙: 마지막 단어가 사용자 평소보다 얼마나 높고 어느 쪽으로 움직이는가 ----------
+  // 기본값 꺼짐(finalRuleOn:false). 켜져 있어도 기준 음높이가 아직 없거나 유성 프레임이 모자라면 예전 규칙을 써요.
+  // 기준값 고정 기록 (2026-11-21): 녹음 464개(1~5차, 같은 화자의 다른 클립으로 기준 음높이 B)에서
+  // finalHeightHigh/Low를 -8~8반음, 0.5 간격으로 훑어 세 조건(평서문 진한 ? < 지금 규칙, 질문에 . ≤ 지금 규칙, 흐린 ? ≤ 30%)을
+  // 만족하는 105개 조합 중 흐린 ? 가 가장 적은 값(-4, -4)을 골랐어요. 시험(새 화자) 전에는 더 바꾸지 않아요. finalRuleOn은 시험을 통과하기 전까지 false예요.
+  var BASE_SEC = 60, BASE_MIN = 10;
+  var baseBuf = [];                       // { key, t, vals:[절대 반음], hop }
+  function baseAdd(key, abs, hop) {
+    for (var i = 0; i < baseBuf.length; i++) if (baseBuf[i].key === key) return;
+    var vals = abs.filter(function (v) { return v != null; });
+    if (vals.length) baseBuf.push({ key: key, t: Date.now(), vals: vals, hop: hop });
+    var cut = Date.now() - BASE_SEC * 1000;
+    baseBuf = baseBuf.filter(function (b) { return b.t >= cut; });
+  }
+  function baseline() {
+    var cut = Date.now() - BASE_SEC * 1000, all = [], sec = 0;
+    baseBuf.forEach(function (b) { if (b.t >= cut) { all = all.concat(b.vals); sec += b.vals.length * b.hop; } });
+    return (sec >= BASE_MIN) ? { B: median(all), sec: sec } : { B: null, sec: sec };
+  }
+  function syllables(text) {
+    var t = text || "", ko = t.match(/[가-힣]/g);
+    if (ko && ko.length) return ko.length;
+    var n = 0; t.split(/\s+/).forEach(function (w) { if (!w) return; var m = w.toLowerCase().match(/[aeiouy]+/g); n += m ? m.length : 1; });
+    return n;
+  }
+  // 마지막 단어 구간의 높이 H, 끝 높이 E, 모양 S를 재요. 못 재면 null
+  function finalFeatures(abs, hop, B, n) {
+    if (!abs || B == null) return null;
+    var rel = [], i;
+    for (i = 0; i < abs.length; i++) {
+      var v = abs[i]; if (v == null) { rel.push(null); continue; }
+      v -= B; if (v > 9.18) v -= 12; else if (v < -8.84) v += 12;   // 평소의 1.7배보다 높거나 0.6배보다 낮으면 옥타브 보정
+      rel.push(v);
+    }
+    var cl = rel.slice();
+    for (i = 0; i < rel.length; i++) {          // 주변 7프레임 중간값에서 3반음 넘게 튀면 버려요
+      if (rel[i] == null) continue;
+      var nb = []; for (var j = Math.max(0, i - 3); j <= Math.min(rel.length - 1, i + 3); j++) if (rel[j] != null) nb.push(rel[j]);
+      if (nb.length >= 3 && Math.abs(rel[i] - median(nb)) > 3) cl[i] = null;
+    }
+    var first = -1, last = -1;
+    for (i = 0; i < cl.length; i++) if (cl[i] != null) { if (first < 0) first = i; last = i; }
+    if (first < 0) return null;
+    var Tsec = (last - first + 1) * hop;
+    var Wsec = n <= 2 ? Tsec : Math.max(0.25, (2 / n) * Tsec);
+    var w0 = Math.max(first, last - Math.round(Wsec / hop) + 1);
+    var inW = [], idx = [];
+    for (i = w0; i <= last; i++) if (cl[i] != null) { inW.push(cl[i]); idx.push(i); }
+    if (inW.length < 5) return null;
+    var H = inW.reduce(function (a, b) { return a + b; }, 0) / inW.length;
+    var E = median(inW.slice(-5)), F = median(inW.slice(0, 5)), diff = E - F;
+    return { H: H, E: E, diff: diff, shape: diff > 1 ? "up" : (diff < -1 ? "down" : "flat"), W: Wsec };
+  }
+  // 'q' 진한 ? / 'dim' 흐린 ? / 'p' 마침표 / null 새 규칙을 못 써서 예전 규칙으로
+  function finalRule(text, r) {
+    if (!API.finalRuleOn || !r || r.B == null || !r.abs) return null;
+    if (isEnglish() && startsWithWh(text)) return null;
+    var f = finalFeatures(r.abs, r.hop, r.B, syllables(text));
+    if (!f) return null;
+    var high = f.H >= API.finalHeightHigh && f.shape === "up";
+    if (startsWithWh(text)) return high ? "q" : "dim";
+    if (high) return "q";
+    if (f.H <= API.finalHeightLow || f.shape === "down") return "p";
+    return "dim";
   }
 
   // 쉬는 구간(0.35초 이상)에서 나누기
@@ -301,6 +367,7 @@
     if (vad.timer) { clearInterval(vad.timer); vad.timer = null; } vad.speaking = false; vad.on = vad.off = 0;
     try { if (node) node.disconnect(); if (src) src.disconnect(); if (stream) stream.getTracks().forEach(function (t) { t.onended = null; t.stop(); }); if (ctx) ctx.close(); } catch (e) {}
     ctx = stream = node = src = null; wpos = 0; filled = 0; total = 0; lastChunk = 0;
+    baseBuf = [];   // 기준 음높이는 세션이 끝나면 지워요
   }
 
   // 마지막 3초에서 가장 최근에 끝난 말 조각을 찾아 말끝 상승을 재요
@@ -313,8 +380,10 @@
     if (!segs.length) return { rise: null, question: false, reason: "말소리를 못 찾았어요" };
     var sg = segs[segs.length - 1], seg = x.slice(sg[0], sg[1]);
     var pt = pitchTrack(seg, SR), fr = finalRise(pt.st, pt.hop);
-    if (!fr) return { rise: null, question: false, reason: "음높이를 못 찾았어요", audio: seg, st: pt.st };
-    return { rise: fr.rise, front: frontRise(pt.st, pt.hop), question: fr.rise >= API.threshold, reason: "", audio: seg, st: pt.st, w0: fr.w0, last: fr.last };
+    var bl = baseline(), key = (total - x.length + sg[0]) + ":" + seg.length;   // 같은 말을 두 번 세지 않게 위치로 구분
+    baseAdd(key, pt.abs, pt.hop);
+    if (!fr) return { rise: null, question: false, reason: "음높이를 못 찾았어요", audio: seg, st: pt.st, abs: pt.abs, hop: pt.hop, B: bl.B };
+    return { rise: fr.rise, front: frontRise(pt.st, pt.hop), question: fr.rise >= API.threshold, reason: "", audio: seg, st: pt.st, abs: pt.abs, hop: pt.hop, B: bl.B, w0: fr.w0, last: fr.last };
   }
   // 문장 끝 어미만 봐도 질문인 게 확실한 경우 (예: 먹었니, 가냐, 하나요, 합니까, 할까, 인가요)
   // "-요", "-어", "-지"처럼 질문과 평서문에 둘 다 쓰이는 어미는 여기서 정하지 않고 음높이로 정해요.
@@ -455,6 +524,7 @@
     if (isEnglish()) {
       var en = API.useEndings ? englishQuestion(text) : null;
       if (en) return { question: true, by: en };
+      var frE = finalRule(text, r); if (frE) return { question: frE === "q", by: "끝 높이" };
       if (r && r.question) return { question: true, by: "억양" };
       if (r && r.front != null && r.front > API.whRise && startsWithWh(text)) return { question: true, by: "의문사 음높이" };
       return { question: false, by: r && r.rise != null ? "억양" : "" };
@@ -463,6 +533,7 @@
     if (st) return { question: false, by: "어미 " + st };
     var e = API.useEndings ? endingQuestion(text) : null;
     if (e) return { question: true, by: "어미 " + e };
+    var frK = finalRule(text, r); if (frK) return { question: frK === "q", by: "끝 높이" };
     if (r && r.question) return { question: true, by: "억양" };
     if (r && r.front != null && r.front > API.whRise && startsWithWh(text)) return { question: true, by: "의문사 음높이" };
     return { question: false, by: r && r.rise != null ? "억양" : "" };
@@ -470,6 +541,8 @@
   // (11월 19일) 확신 없는 물음표: 의문사로 시작하고, 질문 어미도 평서 어미도 없고, 말끝 상승이 애매한 구간(2반음 이상, 기준값 미만)이면
   // 진한 ? 대신 흐린 ? 를 붙여요. 구간은 시험 전에 정해 둔 값이고 464개 녹음을 보고 바꾸지 않았어요.
   function uncertain(text, r) {
+    var fr0 = finalRule(text, r);
+    if (fr0) { if (!isEnglish() && endingStatement(text)) return false; if (decide(text, r).question) return false; return fr0 === "dim"; }
     if (!r || r.rise == null) return false;
     if (!startsWithWh(text)) return false;
     var d = decide(text, r);
@@ -484,7 +557,7 @@
     return (API.addPeriod || isEnglish()) ? t + "." : t;
   }
 
-  var API = { version: "2026-11-16", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, uncertainLo: 2, addPeriod: false, rawAudio: false,
-              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
+  var API = { version: "2026-11-16", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
+              _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, _finalFeatures: finalFeatures, _syllables: syllables, finalRule: finalRule, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
   global.HEARQ = API;
 })(window);
