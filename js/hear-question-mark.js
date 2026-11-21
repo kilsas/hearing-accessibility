@@ -693,8 +693,10 @@
     return (API.addPeriod || isEnglish()) ? t + "." : t;
   }
 
-  var API = { version: "2026-11-21-v3", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, probRuleOn: false, v3RuleOn: false, probFaint: 0.65, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
+  var API = { version: "2026-11-21-v3", start: start, stop: stop, wake: wake, onPause: onPause, status: status, judge: judge, punctuate: punctuate, decide: decide, pauseType: pauseType, looksFinal: looksFinal, isDiscourse: isDiscourse, fixI: fixI, englishQuestion: englishQuestion, englishCase: englishCase, lang: "ko-KR", midQuestionIndexes: midQuestionIndexes, pauseMs: 150, endingQuestion: endingQuestion, endingStatement: endingStatement, useEndings: true, threshold: 4, whRise: 1e9, finalRuleOn: false, probRuleOn: false, v3RuleOn: true, probFaint: 0.65, finalHeightHigh: -4, finalHeightLow: -4, uncertainLo: 2, addPeriod: false, rawAudio: false,
               _pitchTrack: pitchTrack, _finalRise: finalRise, _frontRise: frontRise, _finalFeatures: finalFeatures, _probFeatures: probFeatures, _v3Cues: v3Cues, _v3Reset: function () { v3RateHist = []; }, v3Prob: v3Prob, questionProb: questionProb, _syllables: syllables, finalRule: finalRule, startsWithWh: startsWithWh, uncertain: uncertain, _segments: segments };
+  // v3RuleOn은 2026-11-21 22시 폰 확인(?v3=1) 뒤 true로 바꿨어요. 끄려면 false로 되돌리거나 주소에 ?v3=0을 붙여요.
+  try { if (global.location && /[?&]v3=0(&|$)/.test(global.location.search || "")) API.v3RuleOn = false; } catch (e) {}
   // 시험용: 주소 끝에 ?prob=1을 붙이면 저장 없이 이 탭에서만 확률 규칙을 켜요
   try { if (global.location && /[?&]prob=1(&|$)/.test(global.location.search || "")) API.probRuleOn = true; if (global.location && /[?&]v3=1(&|$)/.test(global.location.search || "")) { API.v3RuleOn = true; API.probRuleOn = false; } } catch (e) {}
   global.HEARQ = API;
